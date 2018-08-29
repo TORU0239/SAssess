@@ -3,6 +3,7 @@
     package="my.com.toru.sassess">
 
     <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
 
     <application
         android:allowBackup="true"
@@ -12,6 +13,10 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         android:name=".SassApp">
+
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="@string/google_maps_key" />
 
         <activity android:name=".ui.MainActivity">
             <intent-filter>
