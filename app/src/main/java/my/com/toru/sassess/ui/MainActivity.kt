@@ -92,6 +92,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         // Add a marker in Sydney and move the camera
         map = googleMap
         with(map){
+            uiSettings.isMapToolbarEnabled = false
             addMarker(MarkerOptions()
                     .position(LatLng(1.296793,103.786762))
                     .title("SMOVE")
