@@ -22,7 +22,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         private const val TAG:String = "MainActivity"
     }
 
-    private lateinit var mMap: GoogleMap
+    private lateinit var map: GoogleMap
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -32,16 +32,17 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         mapFragment.getMapAsync(this)
 
         fab_refresh.setOnClickListener { _ ->
-            mMap.clear()
+            map.clear()
+            info_text.text = ""
             ApiHelper.getCurrentBookableCar(1535709600, 1535796000, successCB = {res ->
                 Log.w(TAG, "size:: ${res.body()?.data?.size}")
                 res.body()?.data?.let { list ->
                     if(list.size > 0){
 
-                        mMap.addCircle(CircleOptions().center(LatLng(1.296793,103.786762))
+                        map.addCircle(CircleOptions().center(LatLng(1.296793,103.786762))
                                 .radius(1000.0)
                                 .strokeColor(Color.RED))
-                        mMap.addMarker(MarkerOptions()
+                        map.addMarker(MarkerOptions()
                                 .position(LatLng(1.296793,103.786762))
                                 .title("SMOVE")
                                 .snippet("DEFAULT!!"))
@@ -51,11 +52,11 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
                             val options = MarkerOptions()
                                     .position(LatLng(eachItem.location[0].toDouble(), eachItem.location[1].toDouble()))
                                     .title("Available cars: " + eachItem.availableCar)
-                            val marker = mMap.addMarker(options)
+                            val marker = map.addMarker(options)
                             marker.tag = eachItem
                         }
 
-                        mMap.setOnMarkerClickListener { marker ->
+                        map.setOnMarkerClickListener { marker ->
                             if(!marker.title.equals("SMOVE")){
                                 val tag = marker?.tag as BookingAvailability
                                 tag.dropOffLocations
@@ -89,8 +90,8 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
 
     override fun onMapReady(googleMap: GoogleMap) {
         // Add a marker in Sydney and move the camera
-        mMap = googleMap
-        with(mMap){
+        map = googleMap
+        with(map){
             addMarker(MarkerOptions()
                     .position(LatLng(1.296793,103.786762))
                     .title("SMOVE")
