@@ -2,6 +2,7 @@ package my.com.toru.sassess.ui
 
 import android.graphics.Color
 import android.os.Bundle
+import android.support.design.widget.Snackbar
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -15,6 +16,7 @@ import kotlinx.android.synthetic.main.activity_main.*
 import my.com.toru.sassess.R
 import my.com.toru.sassess.model.BookingAvailability
 import my.com.toru.sassess.remote.ApiHelper
+import my.com.toru.sassess.remote.Util
 
 class MainActivity : AppCompatActivity(), OnMapReadyCallback {
 
@@ -34,35 +36,36 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         fab_refresh.setOnClickListener { _ ->
             map.clear()
             info_text.text = ""
-            ApiHelper.getCurrentBookableCar(1535709600, 1535796000, successCB = {res ->
-                Log.w(TAG, "size:: ${res.body()?.data?.size}")
-                res.body()?.data?.let { list ->
-                    if(list.size > 0){
 
-                        map.addCircle(CircleOptions().center(LatLng(1.296793,103.786762))
-                                .radius(1000.0)
-                                .strokeColor(Color.RED))
-                        map.addMarker(MarkerOptions()
-                                .position(LatLng(1.296793,103.786762))
-                                .title("SMOVE")
-                                .snippet("DEFAULT!!"))
+            if(Util.checkNetworkState(this)){
+                ApiHelper.getCurrentBookableCar(1535709600, 1535796000, successCB = {res ->
+                    Log.w(TAG, "size:: ${res.body()?.data?.size}")
+                    res.body()?.data?.let { list ->
+                        if(list.size > 0){
+                            map.addCircle(CircleOptions().center(LatLng(1.296793,103.786762))
+                                    .radius(1000.0)
+                                    .strokeColor(Color.RED))
+                            map.addMarker(MarkerOptions()
+                                    .position(LatLng(1.296793,103.786762))
+                                    .title("SMOVE")
+                                    .snippet("DEFAULT!!"))
 
-                        // making and adding marker on Google Map Fragment
-                        for(eachItem in list){
-                            val options = MarkerOptions()
-                                    .position(LatLng(eachItem.location[0].toDouble(), eachItem.location[1].toDouble()))
-                                    .title("Available cars: " + eachItem.availableCar)
-                            val marker = map.addMarker(options)
-                            marker.tag = eachItem
-                        }
+                            // making and adding marker on Google Map Fragment
+                            for(eachItem in list){
+                                val options = MarkerOptions()
+                                        .position(LatLng(eachItem.location[0].toDouble(), eachItem.location[1].toDouble()))
+                                        .title("Available cars: " + eachItem.availableCar)
+                                val marker = map.addMarker(options)
+                                marker.tag = eachItem
+                            }
 
-                        map.setOnMarkerClickListener { marker ->
-                            if(!marker.title.equals("SMOVE")){
-                                val tag = marker?.tag as BookingAvailability
-                                tag.dropOffLocations
-                                        .takeIf { it.size > 0 }
-                                        .let {
-                                            list->list?.let {
+                            map.setOnMarkerClickListener { marker ->
+                                if(!marker.title.equals("SMOVE")){
+                                    val tag = marker?.tag as BookingAvailability
+                                    tag.dropOffLocations
+                                            .takeIf { it.size > 0 }
+                                            .let {
+                                                list->list?.let {
                                                 val droppingPointLocation = StringBuilder()
                                                 for(each in list){
                                                     droppingPointLocation.append("lat: ")
@@ -74,17 +77,23 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
                                                 info_text.text = ""
                                                 info_text.text = droppingPointLocation.toString()
                                             }
-                                        }
+                                            }
+                                }
+                                false
                             }
-
-                            false
                         }
                     }
-                }
 
-            }, failedCB = {
-                Log.w(TAG, "WTF!!!")
-            })
+                }, failedCB = {
+                    Log.w(TAG, "WTF!!!")
+                    Snackbar.make(info_text, "Unknown Error, Please Try again.", Snackbar.LENGTH_LONG)
+                            .show()
+                })
+            }
+            else{
+                Snackbar.make(info_text, "Check your internet connection", Snackbar.LENGTH_LONG)
+                        .show()
+            }
         }
     }
 
