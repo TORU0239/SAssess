@@ -20,9 +20,10 @@ Author: Toru Wonyoung Choi
 2. If an user is out of Singapore (like author), current location is set to City Hall automatically.
 3. With booking API, pin all locations on Google Map, based on date users want.
 4. Users can take date they want from picker.
-5. When clicking each pin, app shows availability and drop-off point per each pin in another activity.
-6. Drop-Off point must be sorted in order of distance from user. 
+5. When clicking each pin, app shows availability and drop-off point per each pin.
+6. Drop-Off point must be sorted in order of distance from user. It can be gotten from Location API. 
 7. In order to sort Latitude and Longitude information, app needs to calculate distance between point and user, by specific formula.
 8. TBD about obtaining address of drop-off poin using geocode api of Google.
-9. Users can choose Pick-Up Point, Drop-Off Point, and Date, and send a request to book.
-10. Because not given any API for booking, request is a kind of dummy.
+9. When clicking Drop Off Point, app calls and initializes another activity with information from user.
+10. Users can choose Pick-Up Point, Drop-Off Point, and Date, and send a request to book.
+11. Because not given any API for booking, request is a kind of dummy.
