@@ -19,6 +19,7 @@ import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
 import kotlinx.android.synthetic.main.activity_main.*
 import my.com.toru.sassess.R
@@ -26,7 +27,7 @@ import my.com.toru.sassess.model.BookingAvailability
 import my.com.toru.sassess.remote.ApiHelper
 import my.com.toru.sassess.remote.Util
 
-class MainActivity : AppCompatActivity(), OnMapReadyCallback {
+class MainActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnInfoWindowClickListener {
 
     companion object {
         private const val TAG:String = "MainActivity"
@@ -75,35 +76,6 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
                                 val marker = map.addMarker(options)
                                 marker.tag = eachItem
                             }
-
-                            map.setOnMarkerClickListener { marker ->
-                                if(!marker.title.equals("SMOVE")){
-                                    val tag = marker?.tag as BookingAvailability
-                                    tag.dropOffLocations
-                                            .takeIf { it.size > 0 }
-                                            .let {
-                                                list->list?.let {
-                                                    val droppingPointLocation = StringBuilder()
-                                                    Log.w(TAG, "list size::: ${list.size}")
-                                                    for(each in list){
-//                                                        droppingPointLocation.append("lat: ")
-//                                                                .append(each.location[0])
-//                                                                .append(", lng: ")
-//                                                                .append(each.location[1])
-//                                                                .append("\n")
-                                                        Log.w(TAG, "drop off lat:: ${each.location[0]}, drop off lng:: ${each.location[1]}")
-                                                    }
-                                                    val intent = Intent(this@MainActivity, BookingActivity::class.java)
-                                                            .putExtra("DROP_OFF", list)
-                                                            .putExtra("SELECTED_LAT", tag.location[0])
-                                                            .putExtra("SELECTED_LNG", tag.location[1])
-                                                    startActivity(intent)
-                                                    marker.hideInfoWindow()
-                                                }
-                                            }
-                                }
-                                false
-                            }
                         }
                     }
 
@@ -125,6 +97,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         with(map){
             if(checkPermission()){
                 isMyLocationEnabled = true
+                setOnInfoWindowClickListener(this@MainActivity)
             }
             else{
                 if(ActivityCompat.shouldShowRequestPermissionRationale(this@MainActivity, Manifest.permission.ACCESS_FINE_LOCATION)){
@@ -171,6 +144,28 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
                     ActivityCompat.requestPermissions(this@MainActivity, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), 0x00)
                 }
             }
+        }
+    }
+
+    override fun onInfoWindowClick(marker: Marker?) {
+        if(!marker?.title.equals("SMOVE")){
+            val tag = marker?.tag as BookingAvailability
+            tag.dropOffLocations
+                    .takeIf { it.size > 0 }
+                    .let {
+                        list->list?.let {
+                        Log.w(TAG, "list size::: ${list.size}")
+                        for(each in list){
+                            Log.w(TAG, "drop off lat:: ${each.location[0]}, drop off lng:: ${each.location[1]}")
+                        }
+                        val intent = Intent(this@MainActivity, BookingActivity::class.java)
+                                .putExtra("DROP_OFF", list)
+                                .putExtra("SELECTED_LAT", tag.location[0])
+                                .putExtra("SELECTED_LNG", tag.location[1])
+                        startActivity(intent)
+                        marker.hideInfoWindow()
+                    }
+                }
         }
     }
 
