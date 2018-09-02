@@ -29,6 +29,17 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
 
     companion object {
         private const val TAG:String = "MainActivity"
+        private const val NORTHMOST_LAT = 1.470556
+        private const val NORTHMOST_LNG = 103.817222
+
+        private const val WESTMOST_LAT = 1.242538
+        private const val WESTMOST_LNG = 103.6047383
+
+        private const val SOUTHMOST_LAT = 1.238450
+        private const val SOUTHMOST_LNG = 103.832928
+
+        private const val EASTMOST_LAT = 1.349264
+        private const val EASTMOST_LNG = 104.043313
     }
 
     private lateinit var map: GoogleMap
@@ -175,6 +186,13 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
                 Log.i(TAG, "current provider:: ${location?.provider}")
                 Log.i(TAG, "latitude:${location?.latitude}, longitude:${location?.longitude}")
 
+                if(isUserInsideSG(location?.latitude!!, location.longitude)){
+                    Log.w(TAG, "user are in SG!!")
+                }
+                else{
+                    Log.w(TAG, "not in SG!!!")
+                }
+
                 with(map){
                     addMarker(MarkerOptions()
                             .position(LatLng(location?.latitude!!, location.longitude)))
@@ -183,6 +201,8 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
                 c += 1
             }
         }
+
+        fun isUserInsideSG(lat:Double, lng:Double):Boolean = (lat in SOUTHMOST_LAT..NORTHMOST_LAT && lng in WESTMOST_LNG..EASTMOST_LNG)
 
         override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) {}
 
