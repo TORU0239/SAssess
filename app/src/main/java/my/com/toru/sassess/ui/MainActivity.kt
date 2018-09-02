@@ -3,7 +3,6 @@ package my.com.toru.sassess.ui
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
-import android.graphics.Color
 import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
@@ -16,7 +15,6 @@ import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
-import com.google.android.gms.maps.model.CircleOptions
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
 import kotlinx.android.synthetic.main.activity_main.*
@@ -29,6 +27,9 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
 
     companion object {
         private const val TAG:String = "MainActivity"
+        private const val COUNT = 3
+
+        /* INFORMATION OF TERRITORY OF SINGAPORE */
         private const val NORTHMOST_LAT = 1.470556
         private const val NORTHMOST_LNG = 103.817222
 
@@ -61,14 +62,6 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
                     Log.w(TAG, "size:: ${res.body()?.data?.size}")
                     res.body()?.data?.let { list ->
                         if(list.size > 0){
-                            map.addCircle(CircleOptions().center(LatLng(1.296793,103.786762))
-                                    .radius(1000.0)
-                                    .strokeColor(Color.RED))
-                            map.addMarker(MarkerOptions()
-                                    .position(LatLng(1.296793,103.786762))
-                                    .title("SMOVE")
-                                    .snippet("DEFAULT!!"))
-
                             // making and adding marker on Google Map Fragment
                             for(eachItem in list){
                                 val options = MarkerOptions()
@@ -137,18 +130,12 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
                     ActivityCompat.requestPermissions(this@MainActivity, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), 0x00)
                 }
             }
-
             uiSettings.isMapToolbarEnabled = false
-            addMarker(MarkerOptions()
-                    .position(LatLng(1.296793,103.786762))
-                    .title("SMOVE")
-                    .snippet("DEFAULT!!"))
-            moveCamera(CameraUpdateFactory.newLatLngZoom(LatLng(1.296793,103.786762), 14f))
         }
     }
 
     private lateinit var locationMgr:LocationManager
-    private val count = 3
+
     private var c = 0
 
     private fun initLocationManager(){
@@ -178,7 +165,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
 
     private val locationListener:LocationListener = object:LocationListener{
         override fun onLocationChanged(location: Location?) {
-            if(c == count){
+            if(c == COUNT){
                 c = 0
                 locationMgr.removeUpdates(this)
             }
@@ -195,8 +182,8 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
 
                 with(map){
                     addMarker(MarkerOptions()
-                            .position(LatLng(location?.latitude!!, location.longitude)))
-                    moveCamera(CameraUpdateFactory.newLatLng(LatLng(location?.latitude!!, location.longitude)))
+                            .position(LatLng(location.latitude, location.longitude)))
+                    moveCamera(CameraUpdateFactory.newLatLng(LatLng(location.latitude, location.longitude)))
                 }
                 c += 1
             }
