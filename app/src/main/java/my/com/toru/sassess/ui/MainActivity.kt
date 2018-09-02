@@ -2,6 +2,7 @@ package my.com.toru.sassess.ui
 
 import android.Manifest
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.Location
 import android.location.LocationListener
@@ -10,6 +11,8 @@ import android.os.Bundle
 import android.support.design.widget.Snackbar
 import android.support.v4.app.ActivityCompat
 import android.support.v7.app.AppCompatActivity
+import android.support.v7.widget.DividerItemDecoration
+import android.support.v7.widget.LinearLayoutManager
 import android.util.Log
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
@@ -49,23 +52,25 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        rcv_drop_point.layoutManager = LinearLayoutManager(this@MainActivity)
+        rcv_drop_point.addItemDecoration(DividerItemDecoration(this@MainActivity, DividerItemDecoration.VERTICAL))
+
         checkPermission()
 
         val mapFragment = supportFragmentManager.findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
         fab_refresh.setOnClickListener { _ ->
             map.clear()
-            info_text.text = ""
 
             if(Util.checkNetworkState(this)){
-                ApiHelper.getCurrentBookableCar(1535709600, 1535796000, successCB = {res ->
+                ApiHelper.getCurrentBookableCar(1535968800, 1536141600, successCB = {res ->
                     Log.w(TAG, "size:: ${res.body()?.data?.size}")
                     res.body()?.data?.let { list ->
                         if(list.size > 0){
                             // making and adding marker on Google Map Fragment
                             for(eachItem in list){
                                 val options = MarkerOptions()
-                                        .position(LatLng(eachItem.location[0].toDouble(), eachItem.location[1].toDouble()))
+                                        .position(LatLng(eachItem.location[0], eachItem.location[1]))
                                         .title("Available cars: " + eachItem.availableCar)
                                 val marker = map.addMarker(options)
                                 marker.tag = eachItem
@@ -78,17 +83,23 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
                                             .takeIf { it.size > 0 }
                                             .let {
                                                 list->list?.let {
-                                                val droppingPointLocation = StringBuilder()
-                                                for(each in list){
-                                                    droppingPointLocation.append("lat: ")
-                                                            .append(each.location[0])
-                                                            .append(", lng: ")
-                                                            .append(each.location[1])
-                                                            .append("\n")
+                                                    val droppingPointLocation = StringBuilder()
+                                                    Log.w(TAG, "list size::: ${list.size}")
+                                                    for(each in list){
+//                                                        droppingPointLocation.append("lat: ")
+//                                                                .append(each.location[0])
+//                                                                .append(", lng: ")
+//                                                                .append(each.location[1])
+//                                                                .append("\n")
+                                                        Log.w(TAG, "drop off lat:: ${each.location[0]}, drop off lng:: ${each.location[1]}")
+                                                    }
+                                                    val intent = Intent(this@MainActivity, BookingActivity::class.java)
+                                                            .putExtra("DROP_OFF", list)
+                                                            .putExtra("SELECTED_LAT", tag.location[0])
+                                                            .putExtra("SELECTED_LNG", tag.location[1])
+                                                    startActivity(intent)
+                                                    marker.hideInfoWindow()
                                                 }
-                                                info_text.text = ""
-                                                info_text.text = droppingPointLocation.toString()
-                                            }
                                             }
                                 }
                                 false
@@ -98,12 +109,12 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
 
                 }, failedCB = {
                     Log.w(TAG, "WTF!!!")
-                    Snackbar.make(info_text, "Unknown Error, Please Try again.", Snackbar.LENGTH_LONG)
+                    Snackbar.make(rcv_drop_point, "Unknown Error, Please Try again.", Snackbar.LENGTH_LONG)
                             .show()
                 })
             }
             else{
-                Snackbar.make(info_text, "Check your internet connection", Snackbar.LENGTH_LONG)
+                Snackbar.make(rcv_drop_point, "Check your internet connection", Snackbar.LENGTH_LONG)
                         .show()
             }
         }
@@ -117,7 +128,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
             }
             else{
                 if(ActivityCompat.shouldShowRequestPermissionRationale(this@MainActivity, Manifest.permission.ACCESS_FINE_LOCATION)){
-                    Snackbar.make(info_text, "Location Permission is needed.",
+                    Snackbar.make(rcv_drop_point, "Location Permission is needed.",
                             Snackbar.LENGTH_INDEFINITE)
                             .setAction("OK"){
                                 ActivityCompat.requestPermissions(this@MainActivity,
@@ -147,7 +158,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
             }
             else{
                 if(ActivityCompat.shouldShowRequestPermissionRationale(this@MainActivity, Manifest.permission.ACCESS_FINE_LOCATION)){
-                    Snackbar.make(info_text, "Location Permission is needed.",
+                    Snackbar.make(rcv_drop_point, "Location Permission is needed.",
                             Snackbar.LENGTH_INDEFINITE)
                             .setAction("OK"){
                                 ActivityCompat.requestPermissions(this@MainActivity,
@@ -231,7 +242,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
             }
             else{
                 Log.w(TAG, "FINE LOCATION Permission NOT Granted.")
-                Snackbar.make(info_text, "Location Permission is needed.",
+                Snackbar.make(rcv_drop_point, "Location Permission is needed.",
                         Snackbar.LENGTH_INDEFINITE)
                         .setAction("OK"){
                             ActivityCompat.requestPermissions(this@MainActivity,
