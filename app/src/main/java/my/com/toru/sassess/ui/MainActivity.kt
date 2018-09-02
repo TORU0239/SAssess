@@ -1,8 +1,15 @@
 package my.com.toru.sassess.ui
 
+import android.Manifest
+import android.content.Context
+import android.content.pm.PackageManager
 import android.graphics.Color
+import android.location.Location
+import android.location.LocationListener
+import android.location.LocationManager
 import android.os.Bundle
 import android.support.design.widget.Snackbar
+import android.support.v4.app.ActivityCompat
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -30,9 +37,10 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        checkPermission()
+
         val mapFragment = supportFragmentManager.findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
-
         fab_refresh.setOnClickListener { _ ->
             map.clear()
             info_text.text = ""
@@ -98,15 +106,136 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
     }
 
     override fun onMapReady(googleMap: GoogleMap) {
-        // Add a marker in Sydney and move the camera
         map = googleMap
         with(map){
+            if(checkPermission()){
+                isMyLocationEnabled = true
+            }
+            else{
+                if(ActivityCompat.shouldShowRequestPermissionRationale(this@MainActivity, Manifest.permission.ACCESS_FINE_LOCATION)){
+                    Snackbar.make(info_text, "Location Permission is needed.",
+                            Snackbar.LENGTH_INDEFINITE)
+                            .setAction("OK"){
+                                ActivityCompat.requestPermissions(this@MainActivity,
+                                        arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
+                                        0x00)
+                            }
+                            .show()
+                }
+                else{
+                    ActivityCompat.requestPermissions(this@MainActivity, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), 0x00)
+                }
+            }
+
             uiSettings.isMapToolbarEnabled = false
             addMarker(MarkerOptions()
                     .position(LatLng(1.296793,103.786762))
                     .title("SMOVE")
                     .snippet("DEFAULT!!"))
             moveCamera(CameraUpdateFactory.newLatLngZoom(LatLng(1.296793,103.786762), 14f))
+        }
+    }
+
+    private lateinit var locationMgr:LocationManager
+    private val count = 3
+    private var c = 0
+
+    private fun initLocationManager(){
+        locationMgr = getSystemService(Context.LOCATION_SERVICE) as LocationManager
+        with(locationMgr) {
+            if(checkPermission()){
+                requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 1f, locationListener)
+                requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 1000, 1f, locationListener)
+            }
+            else{
+                if(ActivityCompat.shouldShowRequestPermissionRationale(this@MainActivity, Manifest.permission.ACCESS_FINE_LOCATION)){
+                    Snackbar.make(info_text, "Location Permission is needed.",
+                            Snackbar.LENGTH_INDEFINITE)
+                            .setAction("OK"){
+                                ActivityCompat.requestPermissions(this@MainActivity,
+                                        arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
+                                        0x00)
+                            }
+                            .show()
+                }
+                else{
+                    ActivityCompat.requestPermissions(this@MainActivity, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), 0x00)
+                }
+            }
+        }
+    }
+
+    private val locationListener:LocationListener = object:LocationListener{
+        override fun onLocationChanged(location: Location?) {
+            if(c == count){
+                c = 0
+                locationMgr.removeUpdates(this)
+            }
+            else{
+                Log.i(TAG, "current provider:: ${location?.provider}")
+                Log.i(TAG, "latitude:${location?.latitude}, longitude:${location?.longitude}")
+
+                with(map){
+                    addMarker(MarkerOptions()
+                            .position(LatLng(location?.latitude!!, location.longitude)))
+                    moveCamera(CameraUpdateFactory.newLatLng(LatLng(location?.latitude!!, location.longitude)))
+                }
+                c += 1
+            }
+        }
+
+        override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) {}
+
+        override fun onProviderEnabled(provider: String?) {
+            Log.i(TAG, "onProviderEnabled")
+        }
+
+        override fun onProviderDisabled(provider: String?) {
+            Log.i(TAG, "onProviderDisabled")
+        }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        initLocationManager()
+    }
+
+    override fun onStop() {
+        super.onStop()
+        locationMgr.removeUpdates(locationListener)
+    }
+
+    private fun checkPermission():Boolean{
+        Log.w(TAG, "Requesting Permission")
+        return when(ActivityCompat.checkSelfPermission(this@MainActivity, Manifest.permission.ACCESS_FINE_LOCATION)){
+            PackageManager.PERMISSION_GRANTED->{
+                true
+            }
+            else->{
+                false
+            }
+        }
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        if(requestCode == 0x00){
+            if(grantResults.size == 1 && grantResults[0] == PackageManager.PERMISSION_GRANTED){
+                Log.w(TAG, "FINE LOCATION Permission Granted.")
+            }
+            else{
+                Log.w(TAG, "FINE LOCATION Permission NOT Granted.")
+                Snackbar.make(info_text, "Location Permission is needed.",
+                        Snackbar.LENGTH_INDEFINITE)
+                        .setAction("OK"){
+                            ActivityCompat.requestPermissions(this@MainActivity,
+                                    arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
+                                    0x00)
+                        }
+                        .show()
+            }
+        }
+        else{
+            super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         }
     }
 }
