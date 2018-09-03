@@ -58,16 +58,36 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnInfoWi
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-
         checkPermission()
 
+        // initialization for first calendar
+        val calendarYear    = Calendar.getInstance().get(Calendar.YEAR)
+        val calendarMonth   = Calendar.getInstance().get(Calendar.MONTH)
+        val calendarDay     = Calendar.getInstance().get(Calendar.DAY_OF_MONTH)
+        val calendarHour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
+        val calendarMinutes = Calendar.getInstance().get(Calendar.MINUTE)
+
+        calendar = GregorianCalendar(calendarYear, calendarMonth, calendarDay)
+        calendar.set(Calendar.HOUR_OF_DAY, calendarHour)
+        calendar.set(Calendar.MINUTE, calendarMinutes)
+
+
+
+        secondCalendar = GregorianCalendar(calendarYear, calendarMonth, calendarDay+1, calendarHour, calendarMinutes)
+
+        first_date_txt.text = StringBuilder()
+                .append(calendarYear).append("/")
+                .append(calendarMonth+1).append("/")
+                .append(calendarDay)
+
+        first_time_txt.text = StringBuilder()
+                .append(calendarHour).append(":")
+                .append(calendarMinutes).toString()
+
+
         first_date_txt.setOnClickListener {
-            val calendarYear    = Calendar.getInstance().get(Calendar.YEAR)
-            val calendarMonth   = Calendar.getInstance().get(Calendar.MONTH)
-            val calendarDay     = Calendar.getInstance().get(Calendar.DAY_OF_MONTH)
             DatePickerDialog(this@MainActivity, DatePickerDialog.OnDateSetListener {
                 _, year, month, dayOfMonth ->
-                calendar = GregorianCalendar(year, month, dayOfMonth)
                 val firstDate = StringBuilder()
                                                 .append(year).append("/")
                                                 .append(month+1).append("/")
@@ -78,8 +98,6 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnInfoWi
         }
 
         first_time_txt.setOnClickListener {
-            val calendarHour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
-            val calendarMinutes = Calendar.getInstance().get(Calendar.MINUTE)
             TimePickerDialog(this@MainActivity, TimePickerDialog.OnTimeSetListener {
                 _, hourOfDay, minute ->
                 val minutes = if(minute == 0){
@@ -99,10 +117,16 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnInfoWi
             }, calendarHour, calendarMinutes,true).show()
         }
 
+        second_date_txt.text = StringBuilder()
+                .append(secondCalendar.get(Calendar.YEAR)).append("/")
+                .append(secondCalendar.get(Calendar.MONTH)+1).append("/")
+                .append(secondCalendar.get(Calendar.DAY_OF_MONTH))
+
+        second_time_txt.text = StringBuilder()
+                .append(secondCalendar.get(Calendar.HOUR_OF_DAY)).append(":")
+                .append(secondCalendar.get(Calendar.MINUTE)).toString()
+
         second_date_txt.setOnClickListener {
-            val calendarYear    = Calendar.getInstance().get(Calendar.YEAR)
-            val calendarMonth   = Calendar.getInstance().get(Calendar.MONTH)
-            val calendarDay     = Calendar.getInstance().get(Calendar.DAY_OF_MONTH)
             val datepicker = DatePickerDialog(this@MainActivity, DatePickerDialog.OnDateSetListener {
                 _, year, month, dayOfMonth ->
                 val secondDate = StringBuilder()
@@ -111,15 +135,15 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnInfoWi
                         .append(dayOfMonth)
                 second_date_txt.text = secondDate.toString()
 
-                secondCalendar = GregorianCalendar(year, month, dayOfMonth)
+                secondCalendar.set(Calendar.YEAR, year)
+                secondCalendar.set(Calendar.MONTH, month)
+                secondCalendar.set(Calendar.DAY_OF_MONTH, dayOfMonth)
 
-            }, calendarYear, calendarMonth, calendarDay)
+            }, secondCalendar.get(Calendar.YEAR), secondCalendar.get(Calendar.MONTH), secondCalendar.get(Calendar.DAY_OF_MONTH))
             datepicker.show()
         }
 
         second_time_txt.setOnClickListener {
-            val calendarHour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
-            val calendarMinutes = Calendar.getInstance().get(Calendar.MINUTE)
             TimePickerDialog(this@MainActivity, TimePickerDialog.OnTimeSetListener {
                 _, hourOfDay, minute ->
                 val minutes = if(minute == 0){
@@ -136,7 +160,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnInfoWi
                 secondCalendar.set(Calendar.HOUR_OF_DAY, hourOfDay)
                 secondCalendar.set(Calendar.MINUTE, minute)
 
-            }, calendarHour, calendarMinutes,true)
+            }, secondCalendar.get(Calendar.HOUR_OF_DAY), secondCalendar.get(Calendar.MINUTE),true)
                     .show()
         }
 
@@ -148,9 +172,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnInfoWi
             map.clear()
             if(Util.checkNetworkState(this)){
                 progress_main.visibility = View.VISIBLE
-
                 Log.i(TAG, "firstTS: ${calendar.timeInMillis/1000}, secondTS: ${secondCalendar.timeInMillis/1000}")
-
                 ApiHelper.getCurrentBookableCar(calendar.timeInMillis/1000, secondCalendar.timeInMillis/1000, successCB = {res ->
                     progress_main.visibility = View.GONE
                     Log.w(TAG, "size:: ${res.body()?.data?.size}")
@@ -208,7 +230,6 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnInfoWi
     }
 
     private lateinit var locationMgr:LocationManager
-
     private var c = 0
 
     private fun initLocationManager(){
