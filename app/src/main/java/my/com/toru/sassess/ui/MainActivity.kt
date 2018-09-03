@@ -184,6 +184,12 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnInfoWi
                 }
                 else{
                     Log.w(TAG, "not in SG!!!")
+                    // TODO: any other routine to redirect?
+//                    val snackbar = Snackbar.make(rcv_drop_point, "You want to move your location to SG?", Snackbar.LENGTH_INDEFINITE)
+//                    snackbar.setAction("OK"){
+//                        snackbar.dismiss()
+//                    }
+//                    snackbar.show()
                 }
 
                 with(map){
