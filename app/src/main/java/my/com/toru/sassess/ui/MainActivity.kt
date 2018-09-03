@@ -1,6 +1,8 @@
 package my.com.toru.sassess.ui
 
 import android.Manifest
+import android.app.DatePickerDialog
+import android.app.TimePickerDialog
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -11,8 +13,6 @@ import android.os.Bundle
 import android.support.design.widget.Snackbar
 import android.support.v4.app.ActivityCompat
 import android.support.v7.app.AppCompatActivity
-import android.support.v7.widget.DividerItemDecoration
-import android.support.v7.widget.LinearLayoutManager
 import android.util.Log
 import android.view.View
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -28,6 +28,7 @@ import my.com.toru.sassess.SassApp
 import my.com.toru.sassess.model.BookingAvailability
 import my.com.toru.sassess.remote.ApiHelper
 import my.com.toru.sassess.remote.Util
+import java.util.*
 
 class MainActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnInfoWindowClickListener {
 
@@ -51,23 +52,106 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnInfoWi
 
     private lateinit var map: GoogleMap
 
+    private lateinit var calendar:Calendar
+    private lateinit var secondCalendar:Calendar
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        rcv_drop_point.layoutManager = LinearLayoutManager(this@MainActivity)
-        rcv_drop_point.addItemDecoration(DividerItemDecoration(this@MainActivity, DividerItemDecoration.VERTICAL))
-
         checkPermission()
+
+        first_date_txt.setOnClickListener {
+            val calendarYear    = Calendar.getInstance().get(Calendar.YEAR)
+            val calendarMonth   = Calendar.getInstance().get(Calendar.MONTH)
+            val calendarDay     = Calendar.getInstance().get(Calendar.DAY_OF_MONTH)
+            DatePickerDialog(this@MainActivity, DatePickerDialog.OnDateSetListener {
+                _, year, month, dayOfMonth ->
+                calendar = GregorianCalendar(year, month, dayOfMonth)
+                val firstDate = StringBuilder()
+                                                .append(year).append("/")
+                                                .append(month+1).append("/")
+                                                .append(dayOfMonth)
+                first_date_txt.text = firstDate.toString()
+
+            }, calendarYear, calendarMonth, calendarDay).show()
+        }
+
+        first_time_txt.setOnClickListener {
+            val calendarHour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
+            val calendarMinutes = Calendar.getInstance().get(Calendar.MINUTE)
+            TimePickerDialog(this@MainActivity, TimePickerDialog.OnTimeSetListener {
+                _, hourOfDay, minute ->
+                val minutes = if(minute == 0){
+                    "00"
+                } else{
+                    minute.toString()
+                }
+
+                val firstTime = StringBuilder()
+                        .append(hourOfDay).append(":")
+                        .append(minutes)
+                first_time_txt.text = firstTime.toString()
+
+                calendar.set(Calendar.HOUR_OF_DAY, hourOfDay)
+                calendar.set(Calendar.MINUTE, minute)
+
+            }, calendarHour, calendarMinutes,true).show()
+        }
+
+        second_date_txt.setOnClickListener {
+            val calendarYear    = Calendar.getInstance().get(Calendar.YEAR)
+            val calendarMonth   = Calendar.getInstance().get(Calendar.MONTH)
+            val calendarDay     = Calendar.getInstance().get(Calendar.DAY_OF_MONTH)
+            val datepicker = DatePickerDialog(this@MainActivity, DatePickerDialog.OnDateSetListener {
+                _, year, month, dayOfMonth ->
+                val secondDate = StringBuilder()
+                        .append(year).append("/")
+                        .append(month+1).append("/")
+                        .append(dayOfMonth)
+                second_date_txt.text = secondDate.toString()
+
+                secondCalendar = GregorianCalendar(year, month, dayOfMonth)
+
+            }, calendarYear, calendarMonth, calendarDay)
+            datepicker.show()
+        }
+
+        second_time_txt.setOnClickListener {
+            val calendarHour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
+            val calendarMinutes = Calendar.getInstance().get(Calendar.MINUTE)
+            TimePickerDialog(this@MainActivity, TimePickerDialog.OnTimeSetListener {
+                _, hourOfDay, minute ->
+                val minutes = if(minute == 0){
+                    "00"
+                } else{
+                    minute.toString()
+                }
+
+                val secondTime = StringBuilder()
+                        .append(hourOfDay).append(":")
+                        .append(minutes)
+                second_time_txt.text = secondTime.toString()
+
+                secondCalendar.set(Calendar.HOUR_OF_DAY, hourOfDay)
+                secondCalendar.set(Calendar.MINUTE, minute)
+
+            }, calendarHour, calendarMinutes,true)
+                    .show()
+        }
+
 
         val mapFragment = supportFragmentManager.findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
+
         fab_refresh.setOnClickListener { _ ->
             map.clear()
-
             if(Util.checkNetworkState(this)){
                 progress_main.visibility = View.VISIBLE
-                ApiHelper.getCurrentBookableCar(1535968800, 1536141600, successCB = {res ->
+
+                Log.i(TAG, "firstTS: ${calendar.timeInMillis/1000}, secondTS: ${secondCalendar.timeInMillis/1000}")
+
+                ApiHelper.getCurrentBookableCar(calendar.timeInMillis/1000, secondCalendar.timeInMillis/1000, successCB = {res ->
                     progress_main.visibility = View.GONE
                     Log.w(TAG, "size:: ${res.body()?.data?.size}")
                     res.body()?.data?.let { list ->
@@ -85,12 +169,12 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnInfoWi
 
                 }, failedCB = {
                     Log.w(TAG, "WTF!!!")
-                    Snackbar.make(rcv_drop_point, "Unknown Error, Please Try again.", Snackbar.LENGTH_LONG)
+                    Snackbar.make(ll_booking_info, "Unknown Error, Please Try again.", Snackbar.LENGTH_LONG)
                             .show()
                 })
             }
             else{
-                Snackbar.make(rcv_drop_point, "Check your internet connection", Snackbar.LENGTH_LONG)
+                Snackbar.make(ll_booking_info, "Check your internet connection", Snackbar.LENGTH_LONG)
                         .show()
             }
         }
@@ -105,7 +189,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnInfoWi
             }
             else{
                 if(ActivityCompat.shouldShowRequestPermissionRationale(this@MainActivity, Manifest.permission.ACCESS_FINE_LOCATION)){
-                    Snackbar.make(rcv_drop_point, "Location Permission is needed.",
+                    Snackbar.make(ll_booking_info, "Location Permission is needed.",
                             Snackbar.LENGTH_INDEFINITE)
                             .setAction("OK"){
                                 ActivityCompat.requestPermissions(this@MainActivity,
@@ -136,7 +220,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnInfoWi
             }
             else{
                 if(ActivityCompat.shouldShowRequestPermissionRationale(this@MainActivity, Manifest.permission.ACCESS_FINE_LOCATION)){
-                    Snackbar.make(rcv_drop_point, "Location Permission is needed.",
+                    Snackbar.make(ll_booking_info, "Location Permission is needed.",
                             Snackbar.LENGTH_INDEFINITE)
                             .setAction("OK"){
                                 ActivityCompat.requestPermissions(this@MainActivity,
@@ -254,7 +338,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnInfoWi
             }
             else{
                 Log.w(TAG, "FINE LOCATION Permission NOT Granted.")
-                Snackbar.make(rcv_drop_point, "Location Permission is needed.",
+                Snackbar.make(ll_booking_info, "Location Permission is needed.",
                         Snackbar.LENGTH_INDEFINITE)
                         .setAction("OK"){
                             ActivityCompat.requestPermissions(this@MainActivity,
