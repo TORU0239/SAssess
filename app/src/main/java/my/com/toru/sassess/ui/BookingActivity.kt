@@ -7,6 +7,7 @@ import android.support.design.widget.Snackbar
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.widget.Toast
+import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
@@ -45,6 +46,7 @@ class BookingActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnInf
                 .position(LatLng(selectedLat, selectedLng))
                 .title("Selected Location")
                 .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)))
+        googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(LatLng(selectedLat, selectedLng), 13f))
     }
 
     private fun initDropOffPoint(){
@@ -71,8 +73,11 @@ class BookingActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnInf
 
     override fun onMapReady(map: GoogleMap) {
         googleMap = map
-        googleMap.uiSettings.isMapToolbarEnabled = false
-        googleMap.setOnInfoWindowClickListener(this@BookingActivity)
+        with(googleMap){
+            uiSettings.isMapToolbarEnabled = false
+            setOnInfoWindowClickListener(this@BookingActivity)
+        }
+
 
         initSelectedPoint()
         Handler().postDelayed({

@@ -10,6 +10,7 @@ import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import kotlinx.android.synthetic.main.activity_launch.*
 import my.com.toru.sassess.R
+import my.com.toru.sassess.SassApp
 
 
 class LaunchActivity : AppCompatActivity() {
@@ -21,6 +22,10 @@ class LaunchActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_launch)
+
+        (application as SassApp).fixedCurrentLatitude = 0.0
+        (application as SassApp).fixedCurrentLongitude = 0.0
+
         checkPermission()
     }
 

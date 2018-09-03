@@ -116,6 +116,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnInfoWi
                 }
             }
             uiSettings.isMapToolbarEnabled = false
+            setMinZoomPreference(10f)
         }
     }
 
