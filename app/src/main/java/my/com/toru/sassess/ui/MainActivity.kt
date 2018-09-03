@@ -23,6 +23,7 @@ import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
 import kotlinx.android.synthetic.main.activity_main.*
 import my.com.toru.sassess.R
+import my.com.toru.sassess.SassApp
 import my.com.toru.sassess.model.BookingAvailability
 import my.com.toru.sassess.remote.ApiHelper
 import my.com.toru.sassess.remote.Util
@@ -179,17 +180,19 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnInfoWi
                 Log.i(TAG, "current provider:: ${location?.provider}")
                 Log.i(TAG, "latitude:${location?.latitude}, longitude:${location?.longitude}")
 
+                if(location != null){
+                    with(application as SassApp){
+                        fixedCurrentLatitude = location.latitude
+                        fixedCurrentLongitude = location.longitude
+                    }
+                }
+
                 if(isUserInsideSG(location?.latitude!!, location.longitude)){
                     Log.w(TAG, "user are in SG!!")
                 }
                 else{
                     Log.w(TAG, "not in SG!!!")
                     // TODO: any other routine to redirect?
-//                    val snackbar = Snackbar.make(rcv_drop_point, "You want to move your location to SG?", Snackbar.LENGTH_INDEFINITE)
-//                    snackbar.setAction("OK"){
-//                        snackbar.dismiss()
-//                    }
-//                    snackbar.show()
                 }
 
                 with(map){
@@ -216,7 +219,11 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnInfoWi
 
     override fun onStart() {
         super.onStart()
-        initLocationManager()
+        with(application as SassApp){
+            if(fixedCurrentLatitude == 0.0 || fixedCurrentLongitude == 0.0){
+                initLocationManager()
+            }
+        }
     }
 
     override fun onStop() {
