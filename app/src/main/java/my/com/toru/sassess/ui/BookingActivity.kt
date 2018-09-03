@@ -6,6 +6,8 @@ import android.util.Log
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
+import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.MarkerOptions
 import my.com.toru.sassess.R
 import my.com.toru.sassess.model.DropOffLocations
 import java.util.*
@@ -16,11 +18,17 @@ class BookingActivity : AppCompatActivity(), OnMapReadyCallback {
         private val TAG = BookingActivity::class.java.simpleName
     }
 
+    private lateinit var googleMap:GoogleMap
+
     @SuppressWarnings("Unchecked")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_booking)
+        val mapFragment = supportFragmentManager.findFragmentById(R.id.booking_map) as SupportMapFragment
+        mapFragment.getMapAsync(this)
+    }
 
+    private fun initDropOffPoint(){
         val dropOff = intent.getSerializableExtra("DROP_OFF") as ArrayList<DropOffLocations>
         val selectedLat = intent.getDoubleExtra("SELECTED_LAT", 1.0)
         val selectedLng = intent.getDoubleExtra("SELECTED_LNG", 1.0)
@@ -30,13 +38,16 @@ class BookingActivity : AppCompatActivity(), OnMapReadyCallback {
         Log.w(TAG, "drop off size:: ${dropOff.size}")
         for(each in dropOff){
             Log.w(TAG, "drop off latitude:: ${each.location[0]} // drop-off longitude:: ${each.location[1]}")
+
+            googleMap.addMarker(MarkerOptions()
+                    .position(LatLng(each.location[0], each.location[1])))
+
         }
         Log.w(TAG, "==========================")
-
-
-        val mapFragment = supportFragmentManager.findFragmentById(R.id.booking_map) as SupportMapFragment
-        mapFragment.getMapAsync(this)
     }
 
-    override fun onMapReady(map: GoogleMap?) {}
+    override fun onMapReady(map: GoogleMap) {
+        googleMap = map
+        initDropOffPoint()
+    }
 }
