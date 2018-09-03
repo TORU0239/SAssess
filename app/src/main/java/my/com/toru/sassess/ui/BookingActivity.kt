@@ -18,6 +18,12 @@ import com.google.android.gms.maps.model.MarkerOptions
 import kotlinx.android.synthetic.main.activity_booking.*
 import my.com.toru.sassess.R
 import my.com.toru.sassess.model.DropOffLocations
+import my.com.toru.sassess.remote.ApiHelper
+import my.com.toru.sassess.remote.BookingApi
+import okhttp3.ResponseBody
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 import java.util.*
 
 class BookingActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnInfoWindowClickListener{
@@ -63,10 +69,11 @@ class BookingActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnInf
                 Log.w(TAG, "distance:: $distance")
             }
 
-            googleMap.addMarker(MarkerOptions()
+            val eachMarker = googleMap.addMarker(MarkerOptions()
                     .position(LatLng(each.location[0], each.location[1]))
                     .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE))
                     .title("Distance: ${array[0]} meters away." ))
+            eachMarker.tag = each.location
         }
         Log.w(TAG, "==========================")
     }
@@ -88,6 +95,9 @@ class BookingActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnInf
 
     override fun onInfoWindowClick(marker: Marker) {
         if(marker.title != "Selected Location"){
+            val tag = marker.tag as ArrayList<Double>
+            getAddress(tag[0], tag[1])
+
             val snackbar = Snackbar.make(booking_container, "Are you sure", Snackbar.LENGTH_INDEFINITE)
             snackbar.setAction("OK"){
                 // TODO: Shows detail information about reservation
@@ -96,5 +106,27 @@ class BookingActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnInf
             }
             snackbar.show()
         }
+    }
+
+    private fun getAddress(lat:Double, lng:Double){
+        val latlng = StringBuilder().append(lat).append(",").append(lng)
+        ApiHelper.retrofit.create(BookingApi::class.java)
+                .getAddress(latlng.toString())
+                .enqueue(object: Callback<ResponseBody>{
+                    override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
+                        t.printStackTrace()
+                    }
+
+                    override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
+                        when(response.code()){
+                            200->{
+                                Log.i(TAG, "Success!!")
+                            }
+                            else->{
+                                Log.i(TAG, "Network Error!!")
+                            }
+                        }
+                    }
+                })
     }
 }

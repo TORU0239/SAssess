@@ -14,6 +14,7 @@ import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.DividerItemDecoration
 import android.support.v7.widget.LinearLayoutManager
 import android.util.Log
+import android.view.View
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
@@ -65,7 +66,9 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnInfoWi
             map.clear()
 
             if(Util.checkNetworkState(this)){
+                progress_main.visibility = View.VISIBLE
                 ApiHelper.getCurrentBookableCar(1535968800, 1536141600, successCB = {res ->
+                    progress_main.visibility = View.GONE
                     Log.w(TAG, "size:: ${res.body()?.data?.size}")
                     res.body()?.data?.let { list ->
                         if(list.size > 0){
