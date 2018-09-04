@@ -37,6 +37,9 @@ class BookingActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnInf
     private var selectedLat:Double = 0.0
     private var selectedLng:Double = 0.0
 
+    private var startTS:Long = 0
+    private var endTS:Long = 0
+
     @SuppressWarnings("Unchecked")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -48,8 +51,12 @@ class BookingActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnInf
     private fun initSelectedPoint(){
         selectedLat = intent.getDoubleExtra("SELECTED_LAT", 1.0)
         selectedLng = intent.getDoubleExtra("SELECTED_LNG", 1.0)
+        startTS     = intent.getLongExtra("START_TS", 0)
+        endTS       = intent.getLongExtra("END_TS", 0)
 
         Log.w(TAG, "selected location:: $selectedLat, $selectedLng")
+        Log.w(TAG, "selected location:: $startTS, $endTS")
+
         googleMap.addMarker(MarkerOptions()
                 .position(LatLng(selectedLat, selectedLng))
                 .title("Selected Location")
@@ -101,29 +108,44 @@ class BookingActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnInf
         if(marker.title != "Selected Location"){
             val tag = marker.tag as ArrayList<Double>
 
-            if(Util.checkNetworkState(application)){
-                getAddress(tag[0], tag[1], {
-                    fl_progress_container.visibility = View.GONE
-                    AlertDialog.Builder(this@BookingActivity)
-                            .setTitle("Notice")
-                            .setMessage("Are you sure to book $it")
-                            .setNegativeButton("CANCEL"){ dialog, _ -> dialog.dismiss() }
-                            .setPositiveButton("OK"){ _ , _ -> Toast.makeText(this@BookingActivity, "Completed!!", Toast.LENGTH_SHORT).show()}
-                            .create()
-                            .show()
-                }){
-                    fl_progress_container.visibility = View.GONE
-                }
-            }
-            else{
-                AlertDialog.Builder(this@BookingActivity)
-                        .setTitle("Notice")
-                        .setMessage("Are you sure to book here?")
-                        .setNegativeButton("CANCEL"){ dialog, _ -> dialog.dismiss() }
-                        .setPositiveButton("OK"){ _ , _ -> Toast.makeText(this@BookingActivity, "Completed!!", Toast.LENGTH_SHORT).show()}
-                        .create()
-                        .show()
-            }
+//            if(Util.checkNetworkState(application)){
+//                getAddress(tag[0], tag[1], {
+//                    fl_progress_container.visibility = View.GONE
+////                    AlertDialog.Builder(this@BookingActivity)
+////                            .setTitle("Notice")
+////                            .setView(R.layout.layout_booking_info)
+////                            .setMessage("Are you sure to book $it")
+////                            .setNegativeButton("CANCEL"){ dialog, _ -> dialog.dismiss() }
+////                            .setPositiveButton("OK"){ _ , _ -> Toast.makeText(this@BookingActivity, "Completed!!", Toast.LENGTH_SHORT).show()}
+////                            .create()
+////                            .show()
+//                    val bundle = Bundle()
+//                    bundle.putLong("START_TS", startTS)
+//                    bundle.putLong("END_TS", endTS)
+//
+//                    val bookinginfoDialog = BookingInfoDialogFragment.newInstance(bundle)
+//                    bookinginfoDialog.show(supportFragmentManager, "booking_info")
+//                }){
+//                    fl_progress_container.visibility = View.GONE
+//                    Toast.makeText(this@BookingActivity, "Failed to fetch location data. Try it again.", Toast.LENGTH_SHORT).show()
+//                }
+//            }
+//            else{
+//                AlertDialog.Builder(this@BookingActivity)
+//                        .setTitle("Notice")
+//                        .setMessage("Are you sure to book here?")
+//                        .setNegativeButton("CANCEL"){ dialog, _ -> dialog.dismiss() }
+//                        .setPositiveButton("OK"){ _ , _ -> Toast.makeText(this@BookingActivity, "Completed!!", Toast.LENGTH_SHORT).show()}
+//                        .create()
+//                        .show()
+//            }
+
+            val bundle = Bundle()
+            bundle.putLong("START_TS", startTS)
+            bundle.putLong("END_TS", endTS)
+
+            val bookinginfoDialog = BookingInfoDialogFragment.newInstance(bundle)
+            bookinginfoDialog.show(supportFragmentManager, "booking_info")
         }
     }
 
@@ -145,10 +167,11 @@ class BookingActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnInf
                     override fun onResponse(call: Call<GeocodeInformation>, response: Response<GeocodeInformation>) {
                         when(response.code()){
                             200->{
-                                response.body()?.takeIf {
-                                    it.status == "OK"
-                                }?.let { geocodeInfo ->
-                                    success(geocodeInfo.results[0].formattedAddress)
+                                response.body()?.let { geocodeInfo ->
+                                    when(geocodeInfo.status){
+                                        "OK"->success(geocodeInfo.results[0].formattedAddress)
+                                        else->fail()
+                                    }
                                 }
                             }
                             else->{

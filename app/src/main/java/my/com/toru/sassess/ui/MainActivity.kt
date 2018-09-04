@@ -289,6 +289,9 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnInfoWi
                                 .putExtra("DROP_OFF", list)
                                 .putExtra("SELECTED_LAT", tag.location[0])
                                 .putExtra("SELECTED_LNG", tag.location[1])
+                                .putExtra("START_TS", (calendar.timeInMillis))
+                                .putExtra("END_TS", (secondCalendar.timeInMillis))
+
                         startActivity(intent)
                         marker.hideInfoWindow()
                     }

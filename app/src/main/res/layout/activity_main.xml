@@ -37,7 +37,7 @@
             android:layout_height="wrap_content"
             android:gravity="center"
             android:textStyle="bold"
-            android:text="Please Select pickup date and drop-off date."/>
+            android:text="@string/main_select_pickup_and_dropoff"/>
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -49,7 +49,7 @@
                 android:layout_weight="1"
                 android:padding="10dp"
                 android:gravity="center"
-                android:text="1ST Date"/>
+                tools:text="1ST Date"/>
 
             <TextView
                 android:id="@+id/first_time_txt"
@@ -58,7 +58,7 @@
                 android:layout_weight="1"
                 android:padding="10dp"
                 android:gravity="center"
-                android:text="1ST Time"/>
+                tools:text="1ST Time"/>
 
             <TextView
                 android:id="@+id/second_date_txt"
@@ -67,7 +67,7 @@
                 android:layout_weight="1"
                 android:padding="10dp"
                 android:gravity="center"
-                android:text="2ND Date"/>
+                tools:text="2ND Date"/>
 
             <TextView
                 android:id="@+id/second_time_txt"
@@ -76,7 +76,7 @@
                 android:layout_weight="1"
                 android:padding="10dp"
                 android:gravity="center"
-                android:text="2ND Time"/>
+                tools:text="2ND Time"/>
         </LinearLayout>
 
         <LinearLayout

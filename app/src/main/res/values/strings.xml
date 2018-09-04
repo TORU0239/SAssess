@@ -1,3 +1,12 @@
 <resources>
     <string name="app_name">SAssess</string>
+    <!-- Launch Activity -->
+    <string name="sbooking">SBOOKING</string>
+    <string name="author">Written by Toru Wonyoung Choi</string>
+
+    <!-- Main Activity -->
+    <string name="main_select_pickup_and_dropoff">Please Select pickup date and drop-off date.</string>
+
+
+    <!-- Booking Activity -->
 </resources>
