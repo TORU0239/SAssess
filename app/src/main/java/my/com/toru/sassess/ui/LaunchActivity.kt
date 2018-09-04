@@ -1,6 +1,7 @@
 package my.com.toru.sassess.ui
 
 import android.Manifest
+import android.app.Activity
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
@@ -17,32 +18,42 @@ class LaunchActivity : AppCompatActivity() {
 
     companion object {
         val TAG = LaunchActivity::class.java.simpleName!!
+        val REQUEST_CODE = 0x00
     }
+
+    private lateinit var ctx: Activity
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_launch)
 
-        (application as SassApp).fixedCurrentLatitude = 0.0
-        (application as SassApp).fixedCurrentLongitude = 0.0
+        ctx = this@LaunchActivity
 
+        initializeSavedLocation()
         checkPermission()
+    }
+
+    private fun initializeSavedLocation(){
+        with(application as SassApp){
+            fixedCurrentLatitude = 0.0
+            fixedCurrentLongitude = 0.0
+        }
     }
 
     private fun checkPermission(){
         Log.w(TAG, "Requesting Permission")
-        if(ActivityCompat.shouldShowRequestPermissionRationale(this@LaunchActivity, Manifest.permission.ACCESS_FINE_LOCATION)){
+        if(ActivityCompat.shouldShowRequestPermissionRationale(ctx, Manifest.permission.ACCESS_FINE_LOCATION)){
             Snackbar.make(container, "Location Permission is needed.",
                     Snackbar.LENGTH_INDEFINITE)
                     .setAction("OK"){
-                        ActivityCompat.requestPermissions(this@LaunchActivity,
+                        ActivityCompat.requestPermissions(ctx,
                                 arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
                                 0x00)
                     }
                     .show()
         }
         else{
-            ActivityCompat.requestPermissions(this@LaunchActivity, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), 0x00)
+            ActivityCompat.requestPermissions(ctx, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), REQUEST_CODE)
         }
     }
 
@@ -50,7 +61,7 @@ class LaunchActivity : AppCompatActivity() {
         if(requestCode == 0x00){
             if(grantResults.size == 1 && grantResults[0] == PackageManager.PERMISSION_GRANTED){
                 Log.w(TAG, "FINE LOCATION Permission Granted.")
-                startActivity(Intent(this@LaunchActivity, MainActivity::class.java))
+                startActivity(Intent(ctx, MainActivity::class.java))
                 finish()
             }
             else{
@@ -58,9 +69,9 @@ class LaunchActivity : AppCompatActivity() {
                 Snackbar.make(container, "Location Permission is needed.",
                         Snackbar.LENGTH_INDEFINITE)
                         .setAction("OK"){
-                            ActivityCompat.requestPermissions(this@LaunchActivity,
+                            ActivityCompat.requestPermissions(ctx,
                                     arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
-                                    0x00)
+                                    REQUEST_CODE)
                         }
                         .show()
             }

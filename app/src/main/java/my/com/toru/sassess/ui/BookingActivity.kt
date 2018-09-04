@@ -52,7 +52,7 @@ class BookingActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnInf
                 .position(LatLng(selectedLat, selectedLng))
                 .title("Selected Location")
                 .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)))
-        googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(LatLng(selectedLat, selectedLng), 13f))
+        googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(LatLng(selectedLat, selectedLng), 12f))
     }
 
     private fun initDropOffPoint(){
@@ -72,7 +72,7 @@ class BookingActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnInf
             val eachMarker = googleMap.addMarker(MarkerOptions()
                     .position(LatLng(each.location[0], each.location[1]))
                     .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE))
-                    .title("Distance: ${array[0]} meters away." ))
+                    .title("Distance: ${array[0] / 1000f} km away." ))
             eachMarker.tag = each.location
         }
         Log.w(TAG, "==========================")
@@ -82,9 +82,9 @@ class BookingActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnInf
         googleMap = map
         with(googleMap){
             uiSettings.isMapToolbarEnabled = false
+            setMinZoomPreference(10f)
             setOnInfoWindowClickListener(this@BookingActivity)
         }
-
 
         initSelectedPoint()
         Handler().postDelayed({

@@ -15,13 +15,12 @@ import android.support.v4.app.ActivityCompat
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.view.View
+import android.widget.Toast
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
-import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.Marker
-import com.google.android.gms.maps.model.MarkerOptions
+import com.google.android.gms.maps.model.*
 import kotlinx.android.synthetic.main.activity_main.*
 import my.com.toru.sassess.R
 import my.com.toru.sassess.SassApp
@@ -34,7 +33,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnInfoWi
 
     companion object {
         private const val TAG:String = "MainActivity"
-        private const val COUNT = 3
+        private const val COUNT = 1
 
         /* INFORMATION OF TERRITORY OF SINGAPORE */
         private const val NORTHMOST_LAT = 1.470556
@@ -169,16 +168,18 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnInfoWi
         mapFragment.getMapAsync(this)
 
         fab_refresh.setOnClickListener { _ ->
-            map.clear()
             if(Util.checkNetworkState(this)){
-                progress_main.visibility = View.VISIBLE
                 Log.i(TAG, "firstTS: ${calendar.timeInMillis/1000}, secondTS: ${secondCalendar.timeInMillis/1000}")
+                progress_main.visibility = View.VISIBLE
                 ApiHelper.getCurrentBookableCar(calendar.timeInMillis/1000, secondCalendar.timeInMillis/1000, successCB = {res ->
                     progress_main.visibility = View.GONE
                     Log.w(TAG, "size:: ${res.body()?.data?.size}")
                     res.body()?.data?.let { list ->
                         if(list.size > 0){
+                            map.clear()
+
                             // making and adding marker on Google Map Fragment
+
                             for(eachItem in list){
                                 val options = MarkerOptions()
                                         .position(LatLng(eachItem.location[0], eachItem.location[1]))
@@ -191,6 +192,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnInfoWi
 
                 }, failedCB = {
                     Log.w(TAG, "WTF!!!")
+                    progress_main.visibility = View.GONE
                     Snackbar.make(ll_booking_info, "Unknown Error, Please Try again.", Snackbar.LENGTH_LONG)
                             .show()
                 })
@@ -203,6 +205,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnInfoWi
     }
 
     override fun onMapReady(googleMap: GoogleMap) {
+        Log.i(TAG, "onMapReady")
         map = googleMap
         with(map){
             if(checkPermission()){
@@ -281,6 +284,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnInfoWi
 
     private val locationListener:LocationListener = object:LocationListener{
         override fun onLocationChanged(location: Location?) {
+            Log.i(TAG, "onLocationChanged")
             if(c == COUNT){
                 c = 0
                 locationMgr.removeUpdates(this)
@@ -289,27 +293,27 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnInfoWi
                 Log.i(TAG, "current provider:: ${location?.provider}")
                 Log.i(TAG, "latitude:${location?.latitude}, longitude:${location?.longitude}")
 
-                if(location != null){
+                location?.let {
                     with(application as SassApp){
                         fixedCurrentLatitude = location.latitude
                         fixedCurrentLongitude = location.longitude
                     }
-                }
 
-                if(isUserInsideSG(location?.latitude!!, location.longitude)){
-                    Log.w(TAG, "user are in SG!!")
-                }
-                else{
-                    Log.w(TAG, "not in SG!!!")
-                    // TODO: any other routine to redirect?
-                }
+                    if(isUserInsideSG(it.latitude, it.longitude)){
+                        Log.w(TAG, "user are in SG!!")
+                        map.moveCamera(CameraUpdateFactory.newLatLng(LatLng(it.latitude, it.longitude)))
+                    }
+                    else{
+                        Log.w(TAG, "not in SG!!!")
+                        Toast.makeText(this@MainActivity, "You seem to be out of Singapore, so we will move your viewpoint to SG.", Toast.LENGTH_SHORT).show()
 
-                with(map){
-                    addMarker(MarkerOptions()
-                            .position(LatLng(location.latitude, location.longitude)))
-                    moveCamera(CameraUpdateFactory.newLatLng(LatLng(location.latitude, location.longitude)))
+                        map.moveCamera(CameraUpdateFactory.newLatLngZoom(LatLng(1.282302, 103.858528), 12f))
+                        map.addMarker(MarkerOptions()
+                                .position(LatLng(1.282302, 103.858528))
+                                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE)))
+                    }
+                    c += 1
                 }
-                c += 1
             }
         }
 
