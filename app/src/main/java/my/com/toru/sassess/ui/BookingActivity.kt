@@ -3,9 +3,10 @@ package my.com.toru.sassess.ui
 import android.location.Location
 import android.os.Bundle
 import android.os.Handler
-import android.support.design.widget.Snackbar
+import android.support.v7.app.AlertDialog
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
+import android.view.View
 import android.widget.Toast
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
@@ -18,9 +19,10 @@ import com.google.android.gms.maps.model.MarkerOptions
 import kotlinx.android.synthetic.main.activity_booking.*
 import my.com.toru.sassess.R
 import my.com.toru.sassess.model.DropOffLocations
+import my.com.toru.sassess.model.GeocodeInformation
 import my.com.toru.sassess.remote.ApiHelper
 import my.com.toru.sassess.remote.BookingApi
-import okhttp3.ResponseBody
+import my.com.toru.sassess.remote.Util
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -72,7 +74,7 @@ class BookingActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnInf
             val eachMarker = googleMap.addMarker(MarkerOptions()
                     .position(LatLng(each.location[0], each.location[1]))
                     .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE))
-                    .title("Distance: ${array[0] / 1000f} km away." ))
+                    .title("Distance: ${Math.round(array[0] / 1000f)} km away." ))
             eachMarker.tag = each.location
         }
         Log.w(TAG, "==========================")
@@ -90,40 +92,65 @@ class BookingActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnInf
         Handler().postDelayed({
             initDropOffPoint()
             initSelectedPoint()
-        },2000)
+        },1000)
     }
 
     override fun onInfoWindowClick(marker: Marker) {
         if(marker.title != "Selected Location"){
             val tag = marker.tag as ArrayList<Double>
-            getAddress(tag[0], tag[1])
 
-            val snackbar = Snackbar.make(booking_container, "Are you sure", Snackbar.LENGTH_INDEFINITE)
-            snackbar.setAction("OK"){
-                // TODO: Shows detail information about reservation
-                Toast.makeText(this@BookingActivity, "Completed!!", Toast.LENGTH_SHORT).show()
-                snackbar.dismiss()
+            if(Util.checkNetworkState(application)){
+                getAddress(tag[0], tag[1], {
+                    fl_progress_container.visibility = View.GONE
+                    AlertDialog.Builder(this@BookingActivity)
+                            .setTitle("Notice")
+                            .setMessage("Are you sure to book $it")
+                            .setNegativeButton("CANCEL"){ dialog, _ -> dialog.dismiss() }
+                            .setPositiveButton("OK"){ _ , _ -> Toast.makeText(this@BookingActivity, "Completed!!", Toast.LENGTH_SHORT).show()}
+                            .create()
+                            .show()
+                }){
+                    fl_progress_container.visibility = View.GONE
+                }
             }
-            snackbar.show()
+            else{
+                AlertDialog.Builder(this@BookingActivity)
+                        .setTitle("Notice")
+                        .setMessage("Are you sure to book here?")
+                        .setNegativeButton("CANCEL"){ dialog, _ -> dialog.dismiss() }
+                        .setPositiveButton("OK"){ _ , _ -> Toast.makeText(this@BookingActivity, "Completed!!", Toast.LENGTH_SHORT).show()}
+                        .create()
+                        .show()
+            }
         }
     }
 
-    private fun getAddress(lat:Double, lng:Double){
+    private fun getAddress(lat:Double, lng:Double, success:(String)->Unit, fail:()->Unit){
+        fl_progress_container.visibility = View.VISIBLE
         val latlng = StringBuilder().append(lat).append(",").append(lng)
+
+        val queryMap = HashMap<String,String>()
+        queryMap["latlng"] = latlng.toString()
+
         ApiHelper.retrofit.create(BookingApi::class.java)
-                .getAddress(latlng.toString())
-                .enqueue(object: Callback<ResponseBody>{
-                    override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
+                .getAddress(queryMap)
+                .enqueue(object: Callback<GeocodeInformation>{
+                    override fun onFailure(call: Call<GeocodeInformation>, t: Throwable) {
                         t.printStackTrace()
+                        fail()
                     }
 
-                    override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
+                    override fun onResponse(call: Call<GeocodeInformation>, response: Response<GeocodeInformation>) {
                         when(response.code()){
                             200->{
-                                Log.i(TAG, "Success!!")
+                                response.body()?.takeIf {
+                                    it.status == "OK"
+                                }?.let { geocodeInfo ->
+                                    success(geocodeInfo.results[0].formattedAddress)
+                                }
                             }
                             else->{
-                                Log.i(TAG, "Network Error!!")
+                                fail()
                             }
                         }
                     }

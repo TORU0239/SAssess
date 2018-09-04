@@ -70,8 +70,6 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnInfoWi
         calendar.set(Calendar.HOUR_OF_DAY, calendarHour)
         calendar.set(Calendar.MINUTE, calendarMinutes)
 
-
-
         secondCalendar = GregorianCalendar(calendarYear, calendarMonth, calendarDay+1, calendarHour, calendarMinutes)
 
         first_date_txt.text = StringBuilder()
@@ -177,6 +175,9 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnInfoWi
                     res.body()?.data?.let { list ->
                         if(list.size > 0){
                             map.clear()
+                            map.addMarker(MarkerOptions()
+                                    .position(LatLng((application as SassApp).fixedCurrentLatitude, (application as SassApp).fixedCurrentLongitude))
+                                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE)))
 
                             // making and adding marker on Google Map Fragment
 
@@ -294,23 +295,29 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnInfoWi
                 Log.i(TAG, "latitude:${location?.latitude}, longitude:${location?.longitude}")
 
                 location?.let {
-                    with(application as SassApp){
-                        fixedCurrentLatitude = location.latitude
-                        fixedCurrentLongitude = location.longitude
-                    }
-
                     if(isUserInsideSG(it.latitude, it.longitude)){
                         Log.w(TAG, "user are in SG!!")
                         map.moveCamera(CameraUpdateFactory.newLatLng(LatLng(it.latitude, it.longitude)))
+                        map.addMarker(MarkerOptions()
+                                .position(LatLng(it.latitude, it.longitude))
+                                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE)))
+                        with(application as SassApp){
+                            fixedCurrentLatitude = location.latitude
+                            fixedCurrentLongitude = location.longitude
+                        }
                     }
                     else{
                         Log.w(TAG, "not in SG!!!")
                         Toast.makeText(this@MainActivity, "You seem to be out of Singapore, so we will move your viewpoint to SG.", Toast.LENGTH_SHORT).show()
-
                         map.moveCamera(CameraUpdateFactory.newLatLngZoom(LatLng(1.282302, 103.858528), 12f))
                         map.addMarker(MarkerOptions()
                                 .position(LatLng(1.282302, 103.858528))
                                 .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE)))
+
+                        with(application as SassApp){
+                            fixedCurrentLatitude = 1.282302
+                            fixedCurrentLongitude = 103.858528
+                        }
                     }
                     c += 1
                 }
