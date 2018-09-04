@@ -77,10 +77,17 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnInfoWi
                 .append(calendarMonth+1).append("/")
                 .append(calendarDay)
 
-        first_time_txt.text = StringBuilder()
-                .append(calendarHour).append(":")
-                .append(calendarMinutes).toString()
 
+        first_time_txt.text = StringBuilder()
+                                .append(calendarHour).append(":")
+                                .let {
+                                    if(calendarMinutes in 0..9){
+                                        it.append(0).append(calendarMinutes)
+                                    }
+                                    else{
+                                        it.append(calendarMinutes)
+                                    }
+                                }.toString()
 
         first_date_txt.setOnClickListener {
             DatePickerDialog(this@MainActivity, DatePickerDialog.OnDateSetListener {
@@ -97,8 +104,8 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnInfoWi
         first_time_txt.setOnClickListener {
             TimePickerDialog(this@MainActivity, TimePickerDialog.OnTimeSetListener {
                 _, hourOfDay, minute ->
-                val minutes = if(minute == 0){
-                    "00"
+                val minutes = if(minute in 0..9){
+                    """0$minute"""
                 } else{
                     minute.toString()
                 }
@@ -121,7 +128,14 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnInfoWi
 
         second_time_txt.text = StringBuilder()
                 .append(secondCalendar.get(Calendar.HOUR_OF_DAY)).append(":")
-                .append(secondCalendar.get(Calendar.MINUTE)).toString()
+                .let {
+                    if(secondCalendar.get(Calendar.MINUTE) in 0..9){
+                        it.append(0).append(calendarMinutes)
+                    }
+                    else{
+                        it.append(calendarMinutes)
+                    }
+                }.toString()
 
         second_date_txt.setOnClickListener {
             val datepicker = DatePickerDialog(this@MainActivity, DatePickerDialog.OnDateSetListener {
@@ -143,12 +157,11 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnInfoWi
         second_time_txt.setOnClickListener {
             TimePickerDialog(this@MainActivity, TimePickerDialog.OnTimeSetListener {
                 _, hourOfDay, minute ->
-                val minutes = if(minute == 0){
-                    "00"
+                val minutes = if(minute in 0..9){
+                    """0$minute"""
                 } else{
                     minute.toString()
                 }
-
                 val secondTime = StringBuilder()
                         .append(hourOfDay).append(":")
                         .append(minutes)

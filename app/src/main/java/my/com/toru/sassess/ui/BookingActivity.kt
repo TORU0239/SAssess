@@ -58,6 +58,8 @@ class BookingActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnInf
     }
 
     private fun initDropOffPoint(){
+        Toast.makeText(this@BookingActivity, "Fetching Drop-Off Points.", Toast.LENGTH_SHORT).show()
+
         val dropOff = intent.getSerializableExtra("DROP_OFF") as ArrayList<DropOffLocations>
         Log.w(TAG, "==========================")
         Log.w(TAG, "drop off size:: ${dropOff.size}")
