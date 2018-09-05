@@ -3,9 +3,12 @@
     <!-- Launch Activity -->
     <string name="sbooking">SBOOKING</string>
     <string name="author">Written by Toru Wonyoung Choi</string>
+    <string name="need_location_permission">Location Permission is needed."</string>
+    <string name="ok">OK</string>
 
     <!-- Main Activity -->
     <string name="main_select_pickup_and_dropoff">Please Select pickup date and drop-off date.</string>
+    <string name="user_is_out_of_sg">You seem to be out of Singapore, so we will move your viewpoint to SG.</string>
 
 
     <!-- Booking Activity -->

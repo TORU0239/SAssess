@@ -29,11 +29,8 @@ class BookingInfoDialogFragment :DialogFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         arguments?.apply {
-
             val sdf = SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
-
             val startTS = getLong("START_TS")
-
             val startDate = sdf.format(Date(startTS))
 
             val endTS = getLong("END_TS")

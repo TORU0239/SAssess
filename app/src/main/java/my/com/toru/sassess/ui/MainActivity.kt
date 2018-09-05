@@ -28,6 +28,8 @@ import my.com.toru.sassess.model.BookingAvailability
 import my.com.toru.sassess.remote.ApiHelper
 import my.com.toru.sassess.util.Util
 import my.com.toru.sassess.util.Util.isUserInsideSG
+import my.com.toru.sassess.util.actionAndRequestPermission
+import my.com.toru.sassess.util.generateMarker
 import java.util.*
 
 class MainActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnInfoWindowClickListener {
@@ -177,15 +179,15 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnInfoWi
                         if(list.size > 0){
                             map.clear()
                             map.addMarker(MarkerOptions()
-                                    .position(LatLng((application as SassApp).fixedCurrentLatitude, (application as SassApp).fixedCurrentLongitude))
-                                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE)))
+                                    .generateMarker((application as SassApp).fixedCurrentLatitude, (application as SassApp).fixedCurrentLongitude,
+                                            BitmapDescriptorFactory.HUE_ORANGE))
+
 
                             // making and adding marker on Google Map Fragment
-
                             for(eachItem in list){
                                 val options = MarkerOptions()
                                         .position(LatLng(eachItem.location[0], eachItem.location[1]))
-                                        .title("Available cars: " + eachItem.availableCar)
+                                        .title("Available cars: ${eachItem.availableCar}")
                                 val marker = map.addMarker(options)
                                 marker.tag = eachItem
                             }
@@ -246,14 +248,8 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnInfoWi
             }
             else{
                 if(ActivityCompat.shouldShowRequestPermissionRationale(this@MainActivity, Manifest.permission.ACCESS_FINE_LOCATION)){
-                    Snackbar.make(ll_booking_info, "Location Permission is needed.",
-                            Snackbar.LENGTH_INDEFINITE)
-                            .setAction("OK"){
-                                ActivityCompat.requestPermissions(this@MainActivity,
-                                        arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
-                                        0x00)
-                            }
-                            .show()
+                    Snackbar.make(ll_booking_info, R.string.need_location_permission, Snackbar.LENGTH_INDEFINITE)
+                            .actionAndRequestPermission(this@MainActivity)
                 }
                 else{
                     ActivityCompat.requestPermissions(this@MainActivity, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), 0x00)
@@ -263,28 +259,26 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnInfoWi
     }
 
     override fun onInfoWindowClick(marker: Marker?) {
-        if(!marker?.title.equals("SMOVE")){
-            val tag = marker?.tag as BookingAvailability
-            tag.dropOffLocations
-                    .takeIf { it.size > 0 }
-                    .let {
-                        list->list?.let {
-                        Log.w(TAG, "list size::: ${list.size}")
-                        for(each in list){
-                            Log.w(TAG, "drop off lat:: ${each.location[0]}, drop off lng:: ${each.location[1]}")
-                        }
-                        val intent = Intent(this@MainActivity, BookingActivity::class.java)
-                                .putExtra("DROP_OFF", list)
-                                .putExtra("SELECTED_LAT", tag.location[0])
-                                .putExtra("SELECTED_LNG", tag.location[1])
-                                .putExtra("START_TS", (calendar.timeInMillis))
-                                .putExtra("END_TS", (secondCalendar.timeInMillis))
-
-                        startActivity(intent)
-                        marker.hideInfoWindow()
+        val tag = marker?.tag as BookingAvailability
+        tag.dropOffLocations
+                .takeIf { it.size > 0 }
+                .let {
+                    list->list?.let {
+                    Log.w(TAG, "list size::: ${list.size}")
+                    for(each in list){
+                        Log.w(TAG, "drop off lat:: ${each.location[0]}, drop off lng:: ${each.location[1]}")
                     }
+                    val intent = Intent(this@MainActivity, BookingActivity::class.java)
+                            .putExtra(Util.DROP_OFF, list)
+                            .putExtra(Util.SELECTED_LAT, tag.location[0])
+                            .putExtra(Util.SELECTED_LNG, tag.location[1])
+                            .putExtra(Util.START_TS, (calendar.timeInMillis))
+                            .putExtra(Util.END_TS, (secondCalendar.timeInMillis))
+
+                    startActivity(intent)
+                    marker.hideInfoWindow()
                 }
-        }
+                }
     }
 
     private val locationListener:LocationListener = object:LocationListener{
@@ -302,9 +296,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnInfoWi
                     if(isUserInsideSG(it.latitude, it.longitude)){
                         Log.w(TAG, "user are in SG!!")
                         map.moveCamera(CameraUpdateFactory.newLatLng(LatLng(it.latitude, it.longitude)))
-                        map.addMarker(MarkerOptions()
-                                .position(LatLng(it.latitude, it.longitude))
-                                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE)))
+                        map.addMarker(MarkerOptions().generateMarker(it.latitude, it.longitude, BitmapDescriptorFactory.HUE_ORANGE))
                         with(application as SassApp){
                             fixedCurrentLatitude = location.latitude
                             fixedCurrentLongitude = location.longitude
@@ -312,7 +304,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnInfoWi
                     }
                     else{
                         Log.w(TAG, "not in SG!!!")
-                        Toast.makeText(this@MainActivity, "You seem to be out of Singapore, so we will move your viewpoint to SG.", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this@MainActivity, R.string.user_is_out_of_sg, Toast.LENGTH_SHORT).show()
                         map.moveCamera(CameraUpdateFactory.newLatLngZoom(LatLng(Util.MARINA_BAY_SANDS_LAT, Util.MARINA_BAY_SANDS_LNG), 12f))
                         map.addMarker(MarkerOptions()
                                 .position(LatLng(1.282302, 103.858528))
@@ -372,14 +364,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnInfoWi
             }
             else{
                 Log.w(TAG, "FINE LOCATION Permission NOT Granted.")
-                Snackbar.make(ll_booking_info, "Location Permission is needed.",
-                        Snackbar.LENGTH_INDEFINITE)
-                        .setAction("OK"){
-                            ActivityCompat.requestPermissions(this@MainActivity,
-                                    arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
-                                    0x00)
-                        }
-                        .show()
+                Util.makePermissionSnackbar(ll_booking_info).actionAndRequestPermission(this@MainActivity)
             }
         }
         else{

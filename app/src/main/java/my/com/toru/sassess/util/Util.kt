@@ -2,6 +2,9 @@ package my.com.toru.sassess.util
 
 import android.content.Context
 import android.net.ConnectivityManager
+import android.support.design.widget.Snackbar
+import android.view.View
+import my.com.toru.sassess.R
 
 object Util {
 
@@ -22,6 +25,16 @@ object Util {
     val MARINA_BAY_SANDS_LAT = 1.282302
     val MARINA_BAY_SANDS_LNG =103.858528
 
+    /* INTENT KEY FOR EXTRAS */
+    val DROP_OFF = "DROP_OFF"
+    val SELECTED_LAT = "SELECTED_LAT"
+    val SELECTED_LNG = "SELECTED_LNG"
+    val START_TS = "START_TS"
+    val END_TS = "END_TS"
+
+    /* REQUEST ID */
+    const val REQUEST_CODE = 0x00
+
     fun checkNetworkState(ctx: Context):Boolean {
         val connectivityMgr = ctx.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
         val activeNetwork = connectivityMgr.activeNetworkInfo
@@ -29,4 +42,7 @@ object Util {
     }
 
     fun isUserInsideSG(lat:Double, lng:Double):Boolean = (lat in Util.SOUTHMOST_LAT..Util.NORTHMOST_LAT && lng in Util.WESTMOST_LNG..Util.EASTMOST_LNG)
+
+    fun makePermissionSnackbar(container: View):Snackbar = Snackbar.make(container, R.string.need_location_permission, Snackbar.LENGTH_INDEFINITE)
+
 }

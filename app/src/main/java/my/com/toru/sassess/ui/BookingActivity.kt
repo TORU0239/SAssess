@@ -16,6 +16,8 @@ import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
 import my.com.toru.sassess.R
 import my.com.toru.sassess.model.DropOffLocations
+import my.com.toru.sassess.util.Util
+import my.com.toru.sassess.util.generateMarker
 import java.util.*
 
 class BookingActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnInfoWindowClickListener{
@@ -40,10 +42,10 @@ class BookingActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnInf
 
     private fun initSelectedPoint(){
         with(intent){
-            selectedLat = getDoubleExtra("SELECTED_LAT", 1.0)
-            selectedLng = getDoubleExtra("SELECTED_LNG", 1.0)
-            startTS     = getLongExtra("START_TS", 0)
-            endTS       = getLongExtra("END_TS", 0)
+            selectedLat = getDoubleExtra(Util.SELECTED_LAT, 1.0)
+            selectedLng = getDoubleExtra(Util.SELECTED_LNG, 1.0)
+            startTS     = getLongExtra(Util.START_TS, 0)
+            endTS       = getLongExtra(Util.END_TS, 0)
 
             Log.w(TAG, "selected location:: $selectedLat, $selectedLng")
             Log.w(TAG, "selected location:: $startTS, $endTS")
@@ -74,10 +76,10 @@ class BookingActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnInf
                 Log.w(TAG, "distance:: $distance")
             }
 
-            val eachMarker = googleMap.addMarker(MarkerOptions()
-                    .position(LatLng(each.location[0], each.location[1]))
-                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE))
-                    .title("Distance: ${Math.round(array[0] / 1000f)} km away." ))
+            val eachMarker = googleMap.addMarker(
+                    MarkerOptions()
+                            .generateMarker(each.location[0], each.location[1], BitmapDescriptorFactory.HUE_BLUE)
+                            .title("Distance: ${Math.round(array[0] / 1000f)} km away." ))
             eachMarker.tag = each.location
         }
         Log.w(TAG, "==========================")

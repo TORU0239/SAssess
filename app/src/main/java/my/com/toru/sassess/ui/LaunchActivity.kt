@@ -12,13 +12,14 @@ import android.util.Log
 import kotlinx.android.synthetic.main.activity_launch.*
 import my.com.toru.sassess.R
 import my.com.toru.sassess.SassApp
+import my.com.toru.sassess.util.Util
+import my.com.toru.sassess.util.actionAndRequestPermission
 
 
 class LaunchActivity : AppCompatActivity() {
 
     companion object {
         val TAG = LaunchActivity::class.java.simpleName!!
-        val REQUEST_CODE = 0x00
     }
 
     private lateinit var ctx: Activity
@@ -43,22 +44,15 @@ class LaunchActivity : AppCompatActivity() {
     private fun checkPermission(){
         Log.w(TAG, "Requesting Permission")
         if(ActivityCompat.shouldShowRequestPermissionRationale(ctx, Manifest.permission.ACCESS_FINE_LOCATION)){
-            Snackbar.make(container, "Location Permission is needed.",
-                    Snackbar.LENGTH_INDEFINITE)
-                    .setAction("OK"){
-                        ActivityCompat.requestPermissions(ctx,
-                                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
-                                0x00)
-                    }
-                    .show()
+            Util.makePermissionSnackbar(container).actionAndRequestPermission(ctx)
         }
         else{
-            ActivityCompat.requestPermissions(ctx, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), REQUEST_CODE)
+            ActivityCompat.requestPermissions(ctx, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), Util.REQUEST_CODE)
         }
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
-        if(requestCode == 0x00){
+        if(requestCode == Util.REQUEST_CODE){
             if(grantResults.size == 1 && grantResults[0] == PackageManager.PERMISSION_GRANTED){
                 Log.w(TAG, "FINE LOCATION Permission Granted.")
                 startActivity(Intent(ctx, MainActivity::class.java))
@@ -66,14 +60,7 @@ class LaunchActivity : AppCompatActivity() {
             }
             else{
                 Log.w(TAG, "FINE LOCATION Permission NOT Granted.")
-                Snackbar.make(container, "Location Permission is needed.",
-                        Snackbar.LENGTH_INDEFINITE)
-                        .setAction("OK"){
-                            ActivityCompat.requestPermissions(ctx,
-                                    arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
-                                    REQUEST_CODE)
-                        }
-                        .show()
+                Util.makePermissionSnackbar(container).actionAndRequestPermission(ctx)
             }
         }
         else{
