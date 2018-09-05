@@ -3,10 +3,8 @@ package my.com.toru.sassess.ui
 import android.location.Location
 import android.os.Bundle
 import android.os.Handler
-import android.support.v7.app.AlertDialog
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
-import android.view.View
 import android.widget.Toast
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
@@ -16,16 +14,8 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
-import kotlinx.android.synthetic.main.activity_booking.*
 import my.com.toru.sassess.R
 import my.com.toru.sassess.model.DropOffLocations
-import my.com.toru.sassess.model.GeocodeInformation
-import my.com.toru.sassess.remote.ApiHelper
-import my.com.toru.sassess.remote.BookingApi
-import my.com.toru.sassess.remote.Util
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
 import java.util.*
 
 class BookingActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnInfoWindowClickListener{
@@ -49,19 +39,23 @@ class BookingActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnInf
     }
 
     private fun initSelectedPoint(){
-        selectedLat = intent.getDoubleExtra("SELECTED_LAT", 1.0)
-        selectedLng = intent.getDoubleExtra("SELECTED_LNG", 1.0)
-        startTS     = intent.getLongExtra("START_TS", 0)
-        endTS       = intent.getLongExtra("END_TS", 0)
+        with(intent){
+            selectedLat = getDoubleExtra("SELECTED_LAT", 1.0)
+            selectedLng = getDoubleExtra("SELECTED_LNG", 1.0)
+            startTS     = getLongExtra("START_TS", 0)
+            endTS       = getLongExtra("END_TS", 0)
 
-        Log.w(TAG, "selected location:: $selectedLat, $selectedLng")
-        Log.w(TAG, "selected location:: $startTS, $endTS")
+            Log.w(TAG, "selected location:: $selectedLat, $selectedLng")
+            Log.w(TAG, "selected location:: $startTS, $endTS")
+        }
 
-        googleMap.addMarker(MarkerOptions()
-                .position(LatLng(selectedLat, selectedLng))
-                .title("Selected Location")
-                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)))
-        googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(LatLng(selectedLat, selectedLng), 12f))
+        with(googleMap){
+            addMarker(MarkerOptions()
+                    .position(LatLng(selectedLat, selectedLng))
+                    .title("Selected Location")
+                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)))
+            moveCamera(CameraUpdateFactory.newLatLngZoom(LatLng(selectedLat, selectedLng), 12f))
+        }
     }
 
     private fun initDropOffPoint(){
@@ -106,40 +100,6 @@ class BookingActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnInf
 
     override fun onInfoWindowClick(marker: Marker) {
         if(marker.title != "Selected Location"){
-            val tag = marker.tag as ArrayList<Double>
-
-//            if(Util.checkNetworkState(application)){
-//                getAddress(tag[0], tag[1], {
-//                    fl_progress_container.visibility = View.GONE
-////                    AlertDialog.Builder(this@BookingActivity)
-////                            .setTitle("Notice")
-////                            .setView(R.layout.layout_booking_info)
-////                            .setMessage("Are you sure to book $it")
-////                            .setNegativeButton("CANCEL"){ dialog, _ -> dialog.dismiss() }
-////                            .setPositiveButton("OK"){ _ , _ -> Toast.makeText(this@BookingActivity, "Completed!!", Toast.LENGTH_SHORT).show()}
-////                            .create()
-////                            .show()
-//                    val bundle = Bundle()
-//                    bundle.putLong("START_TS", startTS)
-//                    bundle.putLong("END_TS", endTS)
-//
-//                    val bookinginfoDialog = BookingInfoDialogFragment.newInstance(bundle)
-//                    bookinginfoDialog.show(supportFragmentManager, "booking_info")
-//                }){
-//                    fl_progress_container.visibility = View.GONE
-//                    Toast.makeText(this@BookingActivity, "Failed to fetch location data. Try it again.", Toast.LENGTH_SHORT).show()
-//                }
-//            }
-//            else{
-//                AlertDialog.Builder(this@BookingActivity)
-//                        .setTitle("Notice")
-//                        .setMessage("Are you sure to book here?")
-//                        .setNegativeButton("CANCEL"){ dialog, _ -> dialog.dismiss() }
-//                        .setPositiveButton("OK"){ _ , _ -> Toast.makeText(this@BookingActivity, "Completed!!", Toast.LENGTH_SHORT).show()}
-//                        .create()
-//                        .show()
-//            }
-
             val bundle = Bundle()
             bundle.putLong("START_TS", startTS)
             bundle.putLong("END_TS", endTS)
@@ -147,38 +107,5 @@ class BookingActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnInf
             val bookinginfoDialog = BookingInfoDialogFragment.newInstance(bundle)
             bookinginfoDialog.show(supportFragmentManager, "booking_info")
         }
-    }
-
-    private fun getAddress(lat:Double, lng:Double, success:(String)->Unit, fail:()->Unit){
-        fl_progress_container.visibility = View.VISIBLE
-        val latlng = StringBuilder().append(lat).append(",").append(lng)
-
-        val queryMap = HashMap<String,String>()
-        queryMap["latlng"] = latlng.toString()
-
-        ApiHelper.retrofit.create(BookingApi::class.java)
-                .getAddress(queryMap)
-                .enqueue(object: Callback<GeocodeInformation>{
-                    override fun onFailure(call: Call<GeocodeInformation>, t: Throwable) {
-                        t.printStackTrace()
-                        fail()
-                    }
-
-                    override fun onResponse(call: Call<GeocodeInformation>, response: Response<GeocodeInformation>) {
-                        when(response.code()){
-                            200->{
-                                response.body()?.let { geocodeInfo ->
-                                    when(geocodeInfo.status){
-                                        "OK"->success(geocodeInfo.results[0].formattedAddress)
-                                        else->fail()
-                                    }
-                                }
-                            }
-                            else->{
-                                fail()
-                            }
-                        }
-                    }
-                })
     }
 }

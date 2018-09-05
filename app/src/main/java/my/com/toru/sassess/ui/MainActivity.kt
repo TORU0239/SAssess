@@ -26,7 +26,8 @@ import my.com.toru.sassess.R
 import my.com.toru.sassess.SassApp
 import my.com.toru.sassess.model.BookingAvailability
 import my.com.toru.sassess.remote.ApiHelper
-import my.com.toru.sassess.remote.Util
+import my.com.toru.sassess.util.Util
+import my.com.toru.sassess.util.Util.isUserInsideSG
 import java.util.*
 
 class MainActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnInfoWindowClickListener {
@@ -34,19 +35,6 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnInfoWi
     companion object {
         private const val TAG:String = "MainActivity"
         private const val COUNT = 1
-
-        /* INFORMATION OF TERRITORY OF SINGAPORE */
-        private const val NORTHMOST_LAT = 1.470556
-        private const val NORTHMOST_LNG = 103.817222
-
-        private const val WESTMOST_LAT = 1.242538
-        private const val WESTMOST_LNG = 103.6047383
-
-        private const val SOUTHMOST_LAT = 1.238450
-        private const val SOUTHMOST_LNG = 103.832928
-
-        private const val EASTMOST_LAT = 1.349264
-        private const val EASTMOST_LNG = 104.043313
     }
 
     private lateinit var map: GoogleMap
@@ -325,22 +313,20 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnInfoWi
                     else{
                         Log.w(TAG, "not in SG!!!")
                         Toast.makeText(this@MainActivity, "You seem to be out of Singapore, so we will move your viewpoint to SG.", Toast.LENGTH_SHORT).show()
-                        map.moveCamera(CameraUpdateFactory.newLatLngZoom(LatLng(1.282302, 103.858528), 12f))
+                        map.moveCamera(CameraUpdateFactory.newLatLngZoom(LatLng(Util.MARINA_BAY_SANDS_LAT, Util.MARINA_BAY_SANDS_LNG), 12f))
                         map.addMarker(MarkerOptions()
                                 .position(LatLng(1.282302, 103.858528))
                                 .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE)))
 
                         with(application as SassApp){
-                            fixedCurrentLatitude = 1.282302
-                            fixedCurrentLongitude = 103.858528
+                            fixedCurrentLatitude = Util.MARINA_BAY_SANDS_LAT
+                            fixedCurrentLongitude = Util.MARINA_BAY_SANDS_LAT
                         }
                     }
                     c += 1
                 }
             }
         }
-
-        fun isUserInsideSG(lat:Double, lng:Double):Boolean = (lat in SOUTHMOST_LAT..NORTHMOST_LAT && lng in WESTMOST_LNG..EASTMOST_LNG)
 
         override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) {}
 
