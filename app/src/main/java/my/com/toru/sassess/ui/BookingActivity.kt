@@ -66,6 +66,8 @@ class BookingActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnInf
         val dropOff = intent.getSerializableExtra("DROP_OFF") as ArrayList<DropOffLocations>
         Log.w(TAG, "==========================")
         Log.w(TAG, "drop off size:: ${dropOff.size}")
+
+        val kmStr = getString(R.string.km_away)
         for(each in dropOff){
             Log.w(TAG, "drop off latitude:: ${each.location[0]} // drop-off longitude:: ${each.location[1]}")
 
@@ -79,7 +81,7 @@ class BookingActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnInf
             val eachMarker = googleMap.addMarker(
                     MarkerOptions()
                             .generateMarker(each.location[0], each.location[1], BitmapDescriptorFactory.HUE_BLUE)
-                            .title("Distance: ${Math.round(array[0] / 1000f)} km away." ))
+                            .title(kmStr.distance(array[0])))
             eachMarker.tag = each.location
         }
         Log.w(TAG, "==========================")
@@ -110,4 +112,6 @@ class BookingActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnInf
             bookinginfoDialog.show(supportFragmentManager, "booking_info")
         }
     }
+
+    private fun String.distance(distance:Float):String = String.format(this, Math.round(distance / 1000f))
 }
