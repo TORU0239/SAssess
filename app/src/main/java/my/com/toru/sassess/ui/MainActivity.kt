@@ -41,6 +41,7 @@ import java.util.*
 class MainActivity : AppCompatActivity(), OnMapReadyCallback,
                     GoogleMap.OnMapClickListener, GoogleMap.OnMarkerClickListener,
                     GoogleMap.OnInfoWindowClickListener, MainView {
+
     companion object {
         private const val TAG:String = "MainActivity"
         private const val COUNT = 1
@@ -221,6 +222,17 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
     override fun showSnackbar(strRes:Int){
         Snackbar.make(ll_booking_info,strRes, Snackbar.LENGTH_LONG).show()
     }
+
+    override fun setEnabledWidgets(enable: Boolean) {
+        enable.let {
+            first_time_txt.isEnabled = it
+            first_date_txt.isEnabled = it
+            second_time_txt.isEnabled = it
+            second_date_txt.isEnabled = it
+            fab_refresh.isEnabled = it
+        }
+    }
+
 
     private fun initializeCalendars(){
         // initialization for first calendar

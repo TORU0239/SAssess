@@ -11,9 +11,7 @@
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="?android:attr/actionBarSize"
-        android:background="@color/colorAccent"
-        app:title="@string/booking_dialog_title"
-        app:titleTextColor="@android:color/white"/>
+        app:title="@string/booking_dialog_title" />
 
     <TextView
         android:id="@+id/booking_start"
@@ -52,6 +50,8 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/booking_end"
         tools:text="2012/05/13"/>
+
+    <TextView/>
 
     <Button
         android:id="@+id/btn_booking_confirm"

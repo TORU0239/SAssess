@@ -16,4 +16,6 @@ interface MainView:BaseView{
     fun showPermissionSnackbar()
     fun showLocationPicker(list:List<BookingAvailability>)
     fun showSnackbar(strRes:Int)
+
+    fun setEnabledWidgets(enable:Boolean)
 }

@@ -30,16 +30,19 @@ class MainPresenterImp(val view: MainView) : MainPresenter{
 
     override fun requestPickupPoint(start: Long, end: Long) {
         if(Util.checkNetworkState(view.getViewContext())){
+            view.setEnabledWidgets(false)
             view.showOrHideProgress(true)
             ApiHelper.getCurrentBookableCar(start, end, successCB = {
                 response->
-                view.showOrHideProgress(false)
-                response.body()?.data?.let { list ->
-                    if (list.size > 0) {
-                        view.showLocationPicker(list)
+                view.setEnabledWidgets(true)
+                    view.showOrHideProgress(false)
+                    response.body()?.data?.let { list ->
+                        if (list.size > 0) {
+                            view.showLocationPicker(list)
+                        }
                     }
-                }
             }, failedCB = {
+                view.setEnabledWidgets(true)
                 view.showOrHideProgress(false)
                 view.showSnackbar(R.string.network_error)
             })
@@ -50,14 +53,14 @@ class MainPresenterImp(val view: MainView) : MainPresenter{
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray): Boolean {
-        if(requestCode == Util.REQUEST_CODE){
+        return if(requestCode == Util.REQUEST_CODE){
             if(grantResults.size != 1 || grantResults[0] == PackageManager.PERMISSION_GRANTED){
                 view.showPermissionSnackbar()
             }
-            return true
+            true
         }
         else{
-            return false
+            false
         }
     }
 }
