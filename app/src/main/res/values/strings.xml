@@ -10,7 +10,7 @@
     <string name="main_select_pickup_and_dropoff">Please Select pickup date and drop-off date.</string>
     <string name="user_is_out_of_sg">You seem to be out of Singapore, so we will move your viewpoint to SG.</string>
     <string name="no_pickup_selected"><b>Please select your pickup point.</b></string>
-    <string name="distance_from_user" translatable="false">Selected Pickup Point is <b>%2d Km</b> away</string>
+    <string name="distance_from_user" translatable="false">Selected Pickup Point is <b>%2d Km</b> away from you.</string>
     <string name="km_away" translatable="false">"Distance: %2d Km away</string>
 
     <string name="network_error">Network Error, Please Try Again</string>

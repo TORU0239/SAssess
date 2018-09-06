@@ -2,6 +2,7 @@ package my.com.toru.sassess.ui
 
 import android.annotation.SuppressLint
 import android.os.Bundle
+import android.support.design.widget.BottomSheetDialogFragment
 import android.support.v4.app.DialogFragment
 import android.util.Log
 import android.view.LayoutInflater
@@ -13,7 +14,7 @@ import my.com.toru.sassess.util.Util
 import java.text.SimpleDateFormat
 import java.util.*
 
-class BookingInfoDialogFragment :DialogFragment() {
+class BookingInfoDialogFragment : BottomSheetDialogFragment() {
     companion object {
         fun newInstance(argument: Bundle):BookingInfoDialogFragment{
             val dialog = BookingInfoDialogFragment()

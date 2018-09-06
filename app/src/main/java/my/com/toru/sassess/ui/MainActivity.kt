@@ -132,7 +132,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
                                 .putExtra(Util.END_TS, (secondCalendar.timeInMillis))
 
                         startActivity(intent)
-                        marker.hideInfoWindow()
+//                        marker.hideInfoWindow()
                     }
                 }
     }
@@ -158,18 +158,19 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
     }
 
     override fun onMarkerClick(marker: Marker): Boolean {
-        val lat = (marker.tag as BookingAvailability).location[0]
-        val lng = (marker.tag as BookingAvailability).location[1]
+        if(marker.tag != null){
+            val lat = (marker.tag as BookingAvailability).location[0]
+            val lng = (marker.tag as BookingAvailability).location[1]
 
-        val currentLatitude = (application as SassApp).fixedCurrentLatitude
-        val currentLongitude= (application as SassApp).fixedCurrentLongitude
+            val currentLatitude = (application as SassApp).fixedCurrentLatitude
+            val currentLongitude= (application as SassApp).fixedCurrentLongitude
 
-        val distanceFromUser = getString(R.string.distance_from_user)
-        FloatArray(2).let {
-            Location.distanceBetween(currentLatitude, currentLongitude, lat, lng, it)
-            pickup_txt.text = distanceFromUser.distance(it[0])
+            val distanceFromUser = getString(R.string.distance_from_user)
+            FloatArray(2).let {
+                Location.distanceBetween(currentLatitude, currentLongitude, lat, lng, it)
+                pickup_txt.text = distanceFromUser.distance(it[0])
+            }
         }
-
         return false
     }
 
