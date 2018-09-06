@@ -8,7 +8,6 @@ import android.support.v4.app.ActivityCompat
 import android.util.Log
 import my.com.toru.sassess.ui.LaunchActivity
 import my.com.toru.sassess.ui.MainActivity
-import my.com.toru.sassess.ui.view.LaunchPresenter
 import my.com.toru.sassess.ui.view.LaunchView
 import my.com.toru.sassess.util.Util
 

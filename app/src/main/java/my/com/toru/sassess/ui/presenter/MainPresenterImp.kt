@@ -7,7 +7,6 @@ import android.support.v4.app.ActivityCompat
 import my.com.toru.sassess.R
 import my.com.toru.sassess.remote.ApiHelper
 import my.com.toru.sassess.ui.MainActivity
-import my.com.toru.sassess.ui.view.MainPresenter
 import my.com.toru.sassess.ui.view.MainView
 import my.com.toru.sassess.util.Util
 

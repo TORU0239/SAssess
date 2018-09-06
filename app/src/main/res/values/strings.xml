@@ -13,6 +13,8 @@
     <string name="distance_from_user" translatable="false">Selected Pickup Point is <b>%2d Km</b> away from you.</string>
     <string name="km_away" translatable="false">"Distance: %2d Km away</string>
 
+    <string name="find_pickup_point">Find Pickup Points</string>
+
     <string name="network_error">Network Error, Please Try Again</string>
     <string name="check_internet_connection">Check your internet connection</string>
 
