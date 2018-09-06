@@ -62,30 +62,18 @@ class BookingActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnInf
     }
 
     private fun initDropOffPoint(){
-        Toast.makeText(this@BookingActivity, "Fetching Drop-Off Points.", Toast.LENGTH_SHORT).show()
-
-        val dropOff = intent.getSerializableExtra("DROP_OFF") as ArrayList<DropOffLocations>
-        Log.w(TAG, "==========================")
-        Log.w(TAG, "drop off size:: ${dropOff.size}")
-
+        Toast.makeText(this@BookingActivity, R.string.fetched_drop_off, Toast.LENGTH_SHORT).show()
+        val dropOff = intent.getSerializableExtra(Util.DROP_OFF) as ArrayList<DropOffLocations>
         val kmStr = getString(R.string.km_away)
         for(each in dropOff){
-            Log.w(TAG, "drop off latitude:: ${each.location[0]} // drop-off longitude:: ${each.location[1]}")
-
             val array = FloatArray(2)
             Location.distanceBetween(selectedLat, selectedLng, each.location[0], each.location[1], array)
-
-            for(distance in array){
-                Log.w(TAG, "distance:: $distance")
-            }
-
             val eachMarker = googleMap.addMarker(
                     MarkerOptions()
                             .generateMarker(each.location[0], each.location[1], BitmapDescriptorFactory.HUE_BLUE)
                             .title(kmStr.distance(array[0])))
             eachMarker.tag = each.location
         }
-        Log.w(TAG, "==========================")
     }
 
     override fun onMapReady(map: GoogleMap) {
@@ -109,8 +97,8 @@ class BookingActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnInf
             bundle.putLong(Util.START_TS, startTS)
             bundle.putLong(Util.END_TS, endTS)
 
-            val bookinginfoDialog = BookingInfoDialogFragment.newInstance(bundle)
-            bookinginfoDialog.show(supportFragmentManager, "booking_info")
+            BookingInfoDialogFragment
+                    .newInstance(bundle).show(supportFragmentManager, Util.BOOKING_DIALOG_TAG)
         }
     }
 }

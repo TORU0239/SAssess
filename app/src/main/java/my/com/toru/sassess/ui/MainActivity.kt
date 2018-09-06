@@ -26,6 +26,9 @@ import my.com.toru.sassess.R
 import my.com.toru.sassess.SassApp
 import my.com.toru.sassess.model.BookingAvailability
 import my.com.toru.sassess.remote.ApiHelper
+import my.com.toru.sassess.ui.presenter.MainPresenterImp
+import my.com.toru.sassess.ui.view.MainPresenter
+import my.com.toru.sassess.ui.view.MainView
 import my.com.toru.sassess.util.Util
 import my.com.toru.sassess.util.Util.isUserInsideSG
 import my.com.toru.sassess.util.actionAndRequestPermission
@@ -33,22 +36,183 @@ import my.com.toru.sassess.util.distance
 import my.com.toru.sassess.util.generateMarker
 import java.util.*
 
-class MainActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarkerClickListener, GoogleMap.OnInfoWindowClickListener {
+class MainActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarkerClickListener, GoogleMap.OnInfoWindowClickListener, MainView {
     companion object {
         private const val TAG:String = "MainActivity"
         private const val COUNT = 1
     }
 
     private lateinit var map: GoogleMap
-
     private lateinit var calendar:Calendar
     private lateinit var secondCalendar:Calendar
+    private lateinit var locationMgr:LocationManager
+
+    private var count = 0
+
+    private lateinit var presenter:MainPresenter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        checkPermission()
 
+        presenter = MainPresenterImp(this@MainActivity)
+
+        initializeCalendars()
+        initializeMap()
+
+        fab_refresh.setOnClickListener {
+            presenter.requestPickupPoint(calendar.timeInMillis/1000, secondCalendar.timeInMillis/1000)
+        }
+    }
+
+    private fun initializeMap(){
+        val mapFragment = supportFragmentManager.findFragmentById(R.id.map) as SupportMapFragment
+        mapFragment.getMapAsync(this)
+    }
+
+    @Throws(SecurityException::class)
+    override fun onMapReady(googleMap: GoogleMap){
+        Log.i(TAG, "onMapReady")
+        map = googleMap
+        with(map){
+            if(presenter.checkPermissionGranted()){
+                isMyLocationEnabled = true
+                setOnInfoWindowClickListener(this@MainActivity)
+                setOnMarkerClickListener(this@MainActivity)
+            }
+            else{
+                if(ActivityCompat.shouldShowRequestPermissionRationale(this@MainActivity, Manifest.permission.ACCESS_FINE_LOCATION)){
+                    Snackbar.make(ll_booking_info, R.string.need_location_permission,
+                            Snackbar.LENGTH_INDEFINITE)
+                            .setAction(R.string.ok){
+                                ActivityCompat.requestPermissions(this@MainActivity,
+                                        arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
+                                        0x00)
+                            }
+                            .show()
+                }
+                else{
+                    ActivityCompat.requestPermissions(this@MainActivity, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), 0x00)
+                }
+            }
+            uiSettings.isMapToolbarEnabled = false
+            setMinZoomPreference(10f)
+        }
+    }
+
+    @Throws(SecurityException::class)
+    private fun initLocationManager(){
+        locationMgr = getSystemService(Context.LOCATION_SERVICE) as LocationManager
+        with(locationMgr) {
+            if(presenter.checkPermissionGranted()){
+                requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 1f, locationListener)
+                requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 1000, 1f, locationListener)
+            }
+            else{
+                presenter.requestPermission()
+            }
+        }
+    }
+
+    override fun onInfoWindowClick(marker: Marker?) {
+        val tag = marker?.tag as BookingAvailability
+        tag.dropOffLocations
+                .takeIf { it.size > 0 }
+                .let {
+                    list->list?.let {
+                        Log.w(TAG, "list size::: ${list.size}")
+                        for(each in list){
+                            Log.w(TAG, "drop off lat:: ${each.location[0]}, drop off lng:: ${each.location[1]}")
+                        }
+                        val intent = Intent(this@MainActivity, BookingActivity::class.java)
+                                .putExtra(Util.DROP_OFF, list)
+                                .putExtra(Util.SELECTED_LAT, tag.location[0])
+                                .putExtra(Util.SELECTED_LNG, tag.location[1])
+                                .putExtra(Util.START_TS, (calendar.timeInMillis))
+                                .putExtra(Util.END_TS, (secondCalendar.timeInMillis))
+
+                        startActivity(intent)
+                        marker.hideInfoWindow()
+                    }
+                }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        with(application as SassApp){
+            if(fixedCurrentLatitude == 0.0 || fixedCurrentLongitude == 0.0){
+                initLocationManager()
+            }
+        }
+    }
+
+    override fun onStop() {
+        super.onStop()
+        locationMgr.removeUpdates(locationListener)
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        if(!presenter.onRequestPermissionsResult(requestCode,permissions,grantResults)){
+            super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        }
+    }
+
+    override fun onMarkerClick(marker: Marker): Boolean {
+        val lat = (marker.tag as BookingAvailability).location[0]
+        val lng = (marker.tag as BookingAvailability).location[1]
+
+        val currentLatitude = (application as SassApp).fixedCurrentLatitude
+        val currentLongitude= (application as SassApp).fixedCurrentLongitude
+
+        val distanceFromUser = getString(R.string.distance_from_user)
+        FloatArray(2).let {
+            Location.distanceBetween(currentLatitude, currentLongitude, lat, lng, it)
+            pickup_txt.text = distanceFromUser.distance(it[0])
+        }
+
+        return false
+    }
+
+    override fun getViewContext(): Context = this@MainActivity
+
+    override fun showPermissionSnackbar() {
+        Snackbar.make(ll_booking_info, R.string.need_location_permission, Snackbar.LENGTH_INDEFINITE)
+                .actionAndRequestPermission(this@MainActivity)
+    }
+
+    override fun showOrHideProgress(show: Boolean) {
+        progress_main.visibility = if(show){
+            View.VISIBLE
+        }
+        else{
+            View.GONE
+        }
+    }
+
+    override fun showLocationPicker(list: List<BookingAvailability>) {
+        map.clear()
+        map.addMarker(MarkerOptions()
+                .generateMarker((application as SassApp).fixedCurrentLatitude, (application as SassApp).fixedCurrentLongitude,
+                        BitmapDescriptorFactory.HUE_ORANGE))
+
+
+        Log.w(TAG, "${(application as SassApp).fixedCurrentLatitude}, lng:${(application as SassApp).fixedCurrentLongitude}")
+
+        // making and adding marker on Google Map Fragment
+        for(eachItem in list){
+            val options = MarkerOptions()
+                    .position(LatLng(eachItem.location[0], eachItem.location[1]))
+                    .title("Available cars: ${eachItem.availableCar}")
+            val marker = map.addMarker(options)
+            marker.tag = eachItem
+        }
+    }
+
+    override fun showSnackbar(strRes:Int){
+        Snackbar.make(ll_booking_info,strRes, Snackbar.LENGTH_LONG).show()
+    }
+
+    private fun initializeCalendars(){
         // initialization for first calendar
         val calendarYear    = Calendar.getInstance().get(Calendar.YEAR)
         val calendarMonth   = Calendar.getInstance().get(Calendar.MONTH)
@@ -69,23 +233,23 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
 
 
         first_time_txt.text = StringBuilder()
-                                .append(calendarHour).append(":")
-                                .let {
-                                    if(calendarMinutes in 0..9){
-                                        it.append(0).append(calendarMinutes)
-                                    }
-                                    else{
-                                        it.append(calendarMinutes)
-                                    }
-                                }.toString()
+                .append(calendarHour).append(":")
+                .let {
+                    if(calendarMinutes in 0..9){
+                        it.append(0).append(calendarMinutes)
+                    }
+                    else{
+                        it.append(calendarMinutes)
+                    }
+                }.toString()
 
         first_date_txt.setOnClickListener {
             DatePickerDialog(this@MainActivity, DatePickerDialog.OnDateSetListener {
                 _, year, month, dayOfMonth ->
                 val firstDate = StringBuilder()
-                                                .append(year).append("/")
-                                                .append(month+1).append("/")
-                                                .append(dayOfMonth)
+                        .append(year).append("/")
+                        .append(month+1).append("/")
+                        .append(dayOfMonth)
                 first_date_txt.text = firstDate.toString()
 
             }, calendarYear, calendarMonth, calendarDay).show()
@@ -163,130 +327,13 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
             }, secondCalendar.get(Calendar.HOUR_OF_DAY), secondCalendar.get(Calendar.MINUTE),true)
                     .show()
         }
-
-
-        val mapFragment = supportFragmentManager.findFragmentById(R.id.map) as SupportMapFragment
-        mapFragment.getMapAsync(this)
-
-        fab_refresh.setOnClickListener { _ ->
-            if(Util.checkNetworkState(this)){
-                Log.i(TAG, "firstTS: ${calendar.timeInMillis/1000}, secondTS: ${secondCalendar.timeInMillis/1000}")
-                progress_main.visibility = View.VISIBLE
-                ApiHelper.getCurrentBookableCar(calendar.timeInMillis/1000, secondCalendar.timeInMillis/1000, successCB = {res ->
-                    progress_main.visibility = View.GONE
-                    Log.w(TAG, "size:: ${res.body()?.data?.size}")
-                    res.body()?.data?.let { list ->
-                        if(list.size > 0){
-                            map.clear()
-                            map.addMarker(MarkerOptions()
-                                    .generateMarker((application as SassApp).fixedCurrentLatitude, (application as SassApp).fixedCurrentLongitude,
-                                            BitmapDescriptorFactory.HUE_ORANGE))
-
-
-                            // making and adding marker on Google Map Fragment
-                            for(eachItem in list){
-                                val options = MarkerOptions()
-                                        .position(LatLng(eachItem.location[0], eachItem.location[1]))
-                                        .title("Available cars: ${eachItem.availableCar}")
-                                val marker = map.addMarker(options)
-                                marker.tag = eachItem
-                            }
-                        }
-                    }
-
-                }, failedCB = {
-                    Log.w(TAG, "WTF!!!")
-                    progress_main.visibility = View.GONE
-                    Snackbar.make(ll_booking_info, "Unknown Error, Please Try again.", Snackbar.LENGTH_LONG)
-                            .show()
-                })
-            }
-            else{
-                Snackbar.make(ll_booking_info, "Check your internet connection", Snackbar.LENGTH_LONG)
-                        .show()
-            }
-        }
-    }
-
-    override fun onMapReady(googleMap: GoogleMap) {
-        Log.i(TAG, "onMapReady")
-        map = googleMap
-        with(map){
-            if(checkPermission()){
-                isMyLocationEnabled = true
-                setOnInfoWindowClickListener(this@MainActivity)
-                setOnMarkerClickListener(this@MainActivity)
-            }
-            else{
-                if(ActivityCompat.shouldShowRequestPermissionRationale(this@MainActivity, Manifest.permission.ACCESS_FINE_LOCATION)){
-                    Snackbar.make(ll_booking_info, "Location Permission is needed.",
-                            Snackbar.LENGTH_INDEFINITE)
-                            .setAction("OK"){
-                                ActivityCompat.requestPermissions(this@MainActivity,
-                                        arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
-                                        0x00)
-                            }
-                            .show()
-                }
-                else{
-                    ActivityCompat.requestPermissions(this@MainActivity, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), 0x00)
-                }
-            }
-            uiSettings.isMapToolbarEnabled = false
-            setMinZoomPreference(10f)
-        }
-    }
-
-    private lateinit var locationMgr:LocationManager
-    private var c = 0
-
-    private fun initLocationManager(){
-        locationMgr = getSystemService(Context.LOCATION_SERVICE) as LocationManager
-        with(locationMgr) {
-            if(checkPermission()){
-                requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 1f, locationListener)
-                requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 1000, 1f, locationListener)
-            }
-            else{
-                if(ActivityCompat.shouldShowRequestPermissionRationale(this@MainActivity, Manifest.permission.ACCESS_FINE_LOCATION)){
-                    Snackbar.make(ll_booking_info, R.string.need_location_permission, Snackbar.LENGTH_INDEFINITE)
-                            .actionAndRequestPermission(this@MainActivity)
-                }
-                else{
-                    ActivityCompat.requestPermissions(this@MainActivity, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), 0x00)
-                }
-            }
-        }
-    }
-
-    override fun onInfoWindowClick(marker: Marker?) {
-        val tag = marker?.tag as BookingAvailability
-        tag.dropOffLocations
-                .takeIf { it.size > 0 }
-                .let {
-                    list->list?.let {
-                        Log.w(TAG, "list size::: ${list.size}")
-                        for(each in list){
-                            Log.w(TAG, "drop off lat:: ${each.location[0]}, drop off lng:: ${each.location[1]}")
-                        }
-                        val intent = Intent(this@MainActivity, BookingActivity::class.java)
-                                .putExtra(Util.DROP_OFF, list)
-                                .putExtra(Util.SELECTED_LAT, tag.location[0])
-                                .putExtra(Util.SELECTED_LNG, tag.location[1])
-                                .putExtra(Util.START_TS, (calendar.timeInMillis))
-                                .putExtra(Util.END_TS, (secondCalendar.timeInMillis))
-
-                        startActivity(intent)
-                        marker.hideInfoWindow()
-                    }
-                }
     }
 
     private val locationListener:LocationListener = object:LocationListener{
         override fun onLocationChanged(location: Location?) {
             Log.i(TAG, "onLocationChanged")
-            if(c == COUNT){
-                c = 0
+            if(count == COUNT){
+                count = 0
                 locationMgr.removeUpdates(this)
             }
             else{
@@ -308,15 +355,15 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
                         Toast.makeText(this@MainActivity, R.string.user_is_out_of_sg, Toast.LENGTH_SHORT).show()
                         map.moveCamera(CameraUpdateFactory.newLatLngZoom(LatLng(Util.MARINA_BAY_SANDS_LAT, Util.MARINA_BAY_SANDS_LNG), 12f))
                         map.addMarker(MarkerOptions()
-                                .position(LatLng(1.282302, 103.858528))
+                                .position(LatLng(Util.MARINA_BAY_SANDS_LAT, Util.MARINA_BAY_SANDS_LNG))
                                 .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE)))
 
                         with(application as SassApp){
                             fixedCurrentLatitude = Util.MARINA_BAY_SANDS_LAT
-                            fixedCurrentLongitude = Util.MARINA_BAY_SANDS_LAT
+                            fixedCurrentLongitude = Util.MARINA_BAY_SANDS_LNG
                         }
                     }
-                    c += 1
+                    count += 1
                 }
             }
         }
@@ -330,62 +377,5 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
         override fun onProviderDisabled(provider: String?) {
             Log.i(TAG, "onProviderDisabled")
         }
-    }
-
-    override fun onStart() {
-        super.onStart()
-        with(application as SassApp){
-            if(fixedCurrentLatitude == 0.0 || fixedCurrentLongitude == 0.0){
-                initLocationManager()
-            }
-        }
-    }
-
-    override fun onStop() {
-        super.onStop()
-        locationMgr.removeUpdates(locationListener)
-    }
-
-    private fun checkPermission():Boolean{
-        Log.w(TAG, "Requesting Permission")
-        return when(ActivityCompat.checkSelfPermission(this@MainActivity, Manifest.permission.ACCESS_FINE_LOCATION)){
-            PackageManager.PERMISSION_GRANTED->{
-                true
-            }
-            else->{
-                false
-            }
-        }
-    }
-
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
-        if(requestCode == 0x00){
-            if(grantResults.size == 1 && grantResults[0] == PackageManager.PERMISSION_GRANTED){
-                Log.w(TAG, "FINE LOCATION Permission Granted.")
-            }
-            else{
-                Log.w(TAG, "FINE LOCATION Permission NOT Granted.")
-                Util.makePermissionSnackbar(ll_booking_info).actionAndRequestPermission(this@MainActivity)
-            }
-        }
-        else{
-            super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        }
-    }
-
-    override fun onMarkerClick(marker: Marker): Boolean {
-        val lat = (marker.tag as BookingAvailability).location[0]
-        val lng = (marker.tag as BookingAvailability).location[1]
-
-        val currentLatitude = (application as SassApp).fixedCurrentLatitude
-        val currentLongitude= (application as SassApp).fixedCurrentLongitude
-
-        val distanceFromUser = getString(R.string.distance_from_user)
-        FloatArray(2).let {
-            Location.distanceBetween(currentLatitude, currentLongitude, lat, lng, it)
-            pickup_txt.text = distanceFromUser.distance(it[0])
-        }
-
-        return false
     }
 }

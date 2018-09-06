@@ -35,6 +35,10 @@ object Util {
     /* REQUEST ID */
     const val REQUEST_CODE = 0x00
 
+    /* MISCELLANEOUS*/
+    const val BOOKING_DIALOG_TAG = "booking_info"
+    const val BOOKING_DIALOG_DATEFORMATTER = "yyyy-MM-dd HH:mm:ss"
+
     fun checkNetworkState(ctx: Context):Boolean {
         val connectivityMgr = ctx.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
         val activeNetwork = connectivityMgr.activeNetworkInfo

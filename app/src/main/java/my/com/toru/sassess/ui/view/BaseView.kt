@@ -1,6 +1,7 @@
 package my.com.toru.sassess.ui.view
 
 import android.content.Context
+import my.com.toru.sassess.model.BookingAvailability
 
 interface BaseView{
     fun getViewContext(): Context
@@ -17,11 +18,15 @@ interface LaunchPresenter:BasePresenter{
 }
 
 interface MainView:BaseView{
+    fun showOrHideProgress(show:Boolean)
     fun showPermissionSnackbar()
-    fun showLocationPicker()
+    fun showLocationPicker(list:List<BookingAvailability>)
+    fun showSnackbar(strRes:Int)
 }
 
 interface MainPresenter:BasePresenter{
-    fun requestPickupPoint()
-    fun checkPermission():Boolean
+    fun requestPermission()
+    fun checkPermissionGranted():Boolean
+    fun requestPickupPoint(start:Long, end:Long)
+    fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray):Boolean
 }
