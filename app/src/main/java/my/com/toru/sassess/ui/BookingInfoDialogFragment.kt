@@ -52,8 +52,6 @@ class BookingInfoDialogFragment : BottomSheetDialogFragment() {
             booking_end_date.text = endDate
         }
 
-
-
         btn_booking_confirm.setOnClickListener {
             dismiss()
             cbFunction()

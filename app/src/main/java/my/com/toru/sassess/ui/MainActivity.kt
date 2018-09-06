@@ -6,7 +6,6 @@ import android.app.DatePickerDialog
 import android.app.TimePickerDialog
 import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
@@ -21,14 +20,16 @@ import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
-import com.google.android.gms.maps.model.*
+import com.google.android.gms.maps.model.BitmapDescriptorFactory
+import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.Marker
+import com.google.android.gms.maps.model.MarkerOptions
 import kotlinx.android.synthetic.main.activity_main.*
 import my.com.toru.sassess.R
 import my.com.toru.sassess.SassApp
 import my.com.toru.sassess.model.BookingAvailability
-import my.com.toru.sassess.remote.ApiHelper
+import my.com.toru.sassess.ui.presenter.MainPresenter
 import my.com.toru.sassess.ui.presenter.MainPresenterImp
-import my.com.toru.sassess.ui.view.MainPresenter
 import my.com.toru.sassess.ui.view.MainView
 import my.com.toru.sassess.util.Util
 import my.com.toru.sassess.util.Util.isUserInsideSG
@@ -37,7 +38,9 @@ import my.com.toru.sassess.util.distance
 import my.com.toru.sassess.util.generateMarker
 import java.util.*
 
-class MainActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMapClickListener, GoogleMap.OnMarkerClickListener, GoogleMap.OnInfoWindowClickListener, MainView {
+class MainActivity : AppCompatActivity(), OnMapReadyCallback,
+                    GoogleMap.OnMapClickListener, GoogleMap.OnMarkerClickListener,
+                    GoogleMap.OnInfoWindowClickListener, MainView {
     companion object {
         private const val TAG:String = "MainActivity"
         private const val COUNT = 1
@@ -50,7 +53,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMapCli
 
     private var count = 0
 
-    private lateinit var presenter:MainPresenter
+    private lateinit var presenter: MainPresenter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

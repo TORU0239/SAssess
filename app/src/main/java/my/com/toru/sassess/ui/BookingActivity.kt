@@ -54,7 +54,7 @@ class BookingActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnInf
         with(googleMap){
             addMarker(MarkerOptions()
                     .position(LatLng(selectedLat, selectedLng))
-                    .title("Selected Location")
+                    .title(getString(R.string.your_pickup_point))
                     .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)))
             moveCamera(CameraUpdateFactory.newLatLngZoom(LatLng(selectedLat, selectedLng), 12f))
         }
@@ -92,7 +92,7 @@ class BookingActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnInf
     }
 
     override fun onInfoWindowClick(marker: Marker) {
-        if(marker.title != "Selected Location"){
+        if(marker.title != getString(R.string.your_pickup_point)){
             val bundle = Bundle()
             bundle.putLong(Util.START_TS, startTS)
             bundle.putLong(Util.END_TS, endTS)
