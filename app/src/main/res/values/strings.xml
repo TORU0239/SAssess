@@ -9,6 +9,21 @@
     <!-- Main Activity -->
     <string name="main_select_pickup_and_dropoff">Please Select pickup date and drop-off date.</string>
     <string name="user_is_out_of_sg">You seem to be out of Singapore, so we will move your viewpoint to SG.</string>
-    <string name="km_away" translatable="false">"Distance: %2$d Km away</string>
+    <string name="no_pickup_selected"><b>Please select your pickup point.</b></string>
+    <string name="distance_from_user" translatable="false">Selected Pickup Point is <b>%2d Km</b> away from you.</string>
+    <string name="km_away" translatable="false">"Distance: %2d Km away</string>
+
+    <string name="network_error">Network Error, Please Try Again</string>
+    <string name="check_internet_connection">Check your internet connection</string>
+
     <!-- Booking Activity -->
+    <string name="fetched_drop_off">Fetched Drop-Off Points.</string>
+    <string name="booking_dialog_title">BOOKING INFORMATION</string>
+    <string name="start_date">Start Date:</string>
+    <string name="end_date">End Date:</string>
+    <string name="your_pickup_point">Your Pickup Point</string>
+
+    <string name="confirm_and_book">Confirmation for Booking</string>
+    <string name="booking_confirm">BOOKING CONFIRMED!!</string>
+    <string name="proceed_to_main">PROCEED TO MAIN</string>
 </resources>

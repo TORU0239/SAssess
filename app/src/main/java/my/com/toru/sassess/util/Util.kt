@@ -9,31 +9,37 @@ import my.com.toru.sassess.R
 object Util {
 
     /* INFORMATION OF TERRITORY OF SINGAPORE */
-    val NORTHMOST_LAT = 1.470556
-    val NORTHMOST_LNG = 103.817222
+    const val NORTHMOST_LAT = 1.470556
+    const val NORTHMOST_LNG = 103.817222
 
-    val WESTMOST_LAT = 1.242538
-    val WESTMOST_LNG = 103.6047383
+    const val WESTMOST_LAT = 1.242538
+    const val WESTMOST_LNG = 103.6047383
 
-    val SOUTHMOST_LAT = 1.238450
-    val SOUTHMOST_LNG = 103.832928
+    const val SOUTHMOST_LAT = 1.238450
+    const val SOUTHMOST_LNG = 103.832928
 
-    val EASTMOST_LAT = 1.349264
-    val EASTMOST_LNG = 104.043313
+    const val EASTMOST_LAT = 1.349264
+    const val EASTMOST_LNG = 104.043313
 
     /* INFORMATION OF DEFAULT LOCATION WHEN USER IS NOT IN SINGAPORE */
-    val MARINA_BAY_SANDS_LAT = 1.282302
-    val MARINA_BAY_SANDS_LNG =103.858528
+    const val MARINA_BAY_SANDS_LAT = 1.282302
+    const val MARINA_BAY_SANDS_LNG =103.858528
 
     /* INTENT KEY FOR EXTRAS */
-    val DROP_OFF = "DROP_OFF"
-    val SELECTED_LAT = "SELECTED_LAT"
-    val SELECTED_LNG = "SELECTED_LNG"
-    val START_TS = "START_TS"
-    val END_TS = "END_TS"
+    const val DROP_OFF = "DROP_OFF"
+    const val SELECTED_LAT = "SELECTED_LAT"
+    const val SELECTED_LNG = "SELECTED_LNG"
+    const val START_TS = "START_TS"
+    const val END_TS = "END_TS"
 
     /* REQUEST ID */
     const val REQUEST_CODE = 0x00
+
+    /* MISCELLANEOUS*/
+    const val BOOKING_DIALOG_TAG = "booking_info"
+    const val BOOKING_DIALOG_DATEFORMATTER = "yyyy-MM-dd HH:mm:ss"
+    const val COUNTDOWN_MAX = 3
+    const val COUNTDOWN_MAX_ARG = 0x39
 
     fun checkNetworkState(ctx: Context):Boolean {
         val connectivityMgr = ctx.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager

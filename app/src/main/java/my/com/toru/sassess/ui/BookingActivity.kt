@@ -1,5 +1,7 @@
 package my.com.toru.sassess.ui
 
+import android.app.Activity
+import android.content.Intent
 import android.location.Location
 import android.os.Bundle
 import android.os.Handler
@@ -10,13 +12,11 @@ import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
-import com.google.android.gms.maps.model.BitmapDescriptorFactory
-import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.Marker
-import com.google.android.gms.maps.model.MarkerOptions
+import com.google.android.gms.maps.model.*
 import my.com.toru.sassess.R
 import my.com.toru.sassess.model.DropOffLocations
 import my.com.toru.sassess.util.Util
+import my.com.toru.sassess.util.distance
 import my.com.toru.sassess.util.generateMarker
 import java.util.*
 
@@ -54,37 +54,25 @@ class BookingActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnInf
         with(googleMap){
             addMarker(MarkerOptions()
                     .position(LatLng(selectedLat, selectedLng))
-                    .title("Selected Location")
+                    .title(getString(R.string.your_pickup_point))
                     .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)))
             moveCamera(CameraUpdateFactory.newLatLngZoom(LatLng(selectedLat, selectedLng), 12f))
         }
     }
 
     private fun initDropOffPoint(){
-        Toast.makeText(this@BookingActivity, "Fetching Drop-Off Points.", Toast.LENGTH_SHORT).show()
-
-        val dropOff = intent.getSerializableExtra("DROP_OFF") as ArrayList<DropOffLocations>
-        Log.w(TAG, "==========================")
-        Log.w(TAG, "drop off size:: ${dropOff.size}")
-
+        Toast.makeText(this@BookingActivity, R.string.fetched_drop_off, Toast.LENGTH_SHORT).show()
+        val dropOff = intent.getSerializableExtra(Util.DROP_OFF) as ArrayList<DropOffLocations>
         val kmStr = getString(R.string.km_away)
         for(each in dropOff){
-            Log.w(TAG, "drop off latitude:: ${each.location[0]} // drop-off longitude:: ${each.location[1]}")
-
             val array = FloatArray(2)
             Location.distanceBetween(selectedLat, selectedLng, each.location[0], each.location[1], array)
-
-            for(distance in array){
-                Log.w(TAG, "distance:: $distance")
-            }
-
             val eachMarker = googleMap.addMarker(
                     MarkerOptions()
                             .generateMarker(each.location[0], each.location[1], BitmapDescriptorFactory.HUE_BLUE)
                             .title(kmStr.distance(array[0])))
             eachMarker.tag = each.location
         }
-        Log.w(TAG, "==========================")
     }
 
     override fun onMapReady(map: GoogleMap) {
@@ -93,6 +81,7 @@ class BookingActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnInf
             uiSettings.isMapToolbarEnabled = false
             setMinZoomPreference(10f)
             setOnInfoWindowClickListener(this@BookingActivity)
+            setLatLngBoundsForCameraTarget(LatLngBounds(LatLng(Util.SOUTHMOST_LAT, Util.WESTMOST_LNG), LatLng(Util.NORTHMOST_LAT, Util.EASTMOST_LNG)))
         }
 
         initSelectedPoint()
@@ -103,15 +92,24 @@ class BookingActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnInf
     }
 
     override fun onInfoWindowClick(marker: Marker) {
-        if(marker.title != "Selected Location"){
+        if(marker.title != getString(R.string.your_pickup_point)){
             val bundle = Bundle()
-            bundle.putLong("START_TS", startTS)
-            bundle.putLong("END_TS", endTS)
+            bundle.putLong(Util.START_TS, startTS)
+            bundle.putLong(Util.END_TS, endTS)
 
-            val bookinginfoDialog = BookingInfoDialogFragment.newInstance(bundle)
-            bookinginfoDialog.show(supportFragmentManager, "booking_info")
+            val booking = BookingInfoDialogFragment
+                    .newInstance(bundle){
+                        startActivityForResult(Intent(this@BookingActivity, BookingCompleteActivity::class.java), 0x10)
+                    }
+            booking.show(supportFragmentManager, Util.BOOKING_DIALOG_TAG)
         }
     }
 
-    private fun String.distance(distance:Float):String = String.format(this, Math.round(distance / 1000f))
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        if(requestCode == 0x10 && resultCode == Activity.RESULT_OK){
+            setResult(Activity.RESULT_OK)
+            finish()
+        }
+        super.onActivityResult(requestCode, resultCode, data)
+    }
 }
