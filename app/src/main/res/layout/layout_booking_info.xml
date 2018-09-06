@@ -51,8 +51,6 @@
         app:layout_constraintTop_toBottomOf="@id/booking_end"
         tools:text="2012/05/13"/>
 
-    <TextView/>
-
     <Button
         android:id="@+id/btn_booking_confirm"
         android:layout_width="match_parent"
