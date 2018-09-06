@@ -38,6 +38,8 @@ object Util {
     /* MISCELLANEOUS*/
     const val BOOKING_DIALOG_TAG = "booking_info"
     const val BOOKING_DIALOG_DATEFORMATTER = "yyyy-MM-dd HH:mm:ss"
+    const val COUNTDOWN_MAX = 3
+    const val COUNTDOWN_MAX_ARG = 0x39
 
     fun checkNetworkState(ctx: Context):Boolean {
         val connectivityMgr = ctx.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager

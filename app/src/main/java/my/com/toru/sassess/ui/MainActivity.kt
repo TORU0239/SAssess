@@ -263,6 +263,15 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMapCli
                 calendar.set(Calendar.MONTH, month)
                 calendar.set(Calendar.DAY_OF_MONTH, dayOfMonth)
 
+                secondCalendar.set(Calendar.YEAR, year)
+                secondCalendar.set(Calendar.MONTH, month)
+                secondCalendar.set(Calendar.DAY_OF_MONTH, dayOfMonth + 1)
+
+                second_date_txt.text = StringBuilder()
+                        .append(secondCalendar.get(Calendar.YEAR)).append("/")
+                        .append(secondCalendar.get(Calendar.MONTH)+1).append("/")
+                        .append(secondCalendar.get(Calendar.DAY_OF_MONTH))
+
             }, calendarYear, calendarMonth, calendarDay).show()
         }
 
@@ -387,17 +396,6 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMapCli
 
         override fun onProviderDisabled(provider: String?) {
             Log.i(TAG, "onProviderDisabled")
-        }
-    }
-
-    override fun onNewIntent(intent: Intent) {
-        super.onNewIntent(intent)
-        val completed = intent.getBooleanExtra("BOOKING_COMPLETED", false)
-        if(completed){
-            Log.w(TAG, "completed!!")
-        }
-        else{
-            Log.w(TAG, "not completed!!")
         }
     }
 
