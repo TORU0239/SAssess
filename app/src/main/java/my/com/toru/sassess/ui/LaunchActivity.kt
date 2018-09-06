@@ -2,6 +2,7 @@ package my.com.toru.sassess.ui
 
 import android.Manifest
 import android.app.Activity
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
@@ -12,26 +13,32 @@ import android.util.Log
 import kotlinx.android.synthetic.main.activity_launch.*
 import my.com.toru.sassess.R
 import my.com.toru.sassess.SassApp
+import my.com.toru.sassess.ui.presenter.LaunchPresenterImp
+import my.com.toru.sassess.ui.view.LaunchPresenter
+import my.com.toru.sassess.ui.view.LaunchView
+import my.com.toru.sassess.ui.view.MainView
 import my.com.toru.sassess.util.Util
 import my.com.toru.sassess.util.actionAndRequestPermission
 
 
-class LaunchActivity : AppCompatActivity() {
+class LaunchActivity : AppCompatActivity(), LaunchView {
 
     companion object {
         val TAG = LaunchActivity::class.java.simpleName!!
     }
 
     private lateinit var ctx: Activity
+    private lateinit var presenter:LaunchPresenter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_launch)
 
         ctx = this@LaunchActivity
+        presenter = LaunchPresenterImp(this@LaunchActivity)
 
         initializeSavedLocation()
-        checkPermission()
+        presenter.checkPermission()
     }
 
     private fun initializeSavedLocation(){
@@ -40,30 +47,14 @@ class LaunchActivity : AppCompatActivity() {
             fixedCurrentLongitude = 0.0
         }
     }
+    override fun getViewContext(): Context = this@LaunchActivity
 
-    private fun checkPermission(){
-        Log.w(TAG, "Requesting Permission")
-        if(ActivityCompat.shouldShowRequestPermissionRationale(ctx, Manifest.permission.ACCESS_FINE_LOCATION)){
-            Util.makePermissionSnackbar(container).actionAndRequestPermission(ctx)
-        }
-        else{
-            ActivityCompat.requestPermissions(ctx, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), Util.REQUEST_CODE)
-        }
+    override fun showPermissionSnackbar() {
+        Util.makePermissionSnackbar(container).actionAndRequestPermission(ctx)
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
-        if(requestCode == Util.REQUEST_CODE){
-            if(grantResults.size == 1 && grantResults[0] == PackageManager.PERMISSION_GRANTED){
-                Log.w(TAG, "FINE LOCATION Permission Granted.")
-                startActivity(Intent(ctx, MainActivity::class.java))
-                finish()
-            }
-            else{
-                Log.w(TAG, "FINE LOCATION Permission NOT Granted.")
-                Util.makePermissionSnackbar(container).actionAndRequestPermission(ctx)
-            }
-        }
-        else{
+        if(!presenter.onRequestPermissionsResult(requestCode, permissions, grantResults)){
             super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         }
     }
