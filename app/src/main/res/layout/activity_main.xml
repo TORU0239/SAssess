@@ -79,24 +79,13 @@
                 tools:text="2ND Time"/>
         </LinearLayout>
 
-        <LinearLayout
+        <TextView
+            android:id="@+id/pickup_txt"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="10dp">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Selected Pickup Point: "/>
-
-            <TextView
-                android:id="@+id/pickup_txt"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Marina Bay Sands"/>
-
-        </LinearLayout>
-
+            android:layout_marginTop="10dp"
+            android:gravity="center"
+            android:text="@string/no_pickup_selected"/>
 
     </LinearLayout>
 

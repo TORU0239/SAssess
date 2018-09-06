@@ -29,11 +29,11 @@ import my.com.toru.sassess.remote.ApiHelper
 import my.com.toru.sassess.util.Util
 import my.com.toru.sassess.util.Util.isUserInsideSG
 import my.com.toru.sassess.util.actionAndRequestPermission
+import my.com.toru.sassess.util.distance
 import my.com.toru.sassess.util.generateMarker
 import java.util.*
 
-class MainActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnInfoWindowClickListener {
-
+class MainActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarkerClickListener, GoogleMap.OnInfoWindowClickListener {
     companion object {
         private const val TAG:String = "MainActivity"
         private const val COUNT = 1
@@ -215,6 +215,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnInfoWi
             if(checkPermission()){
                 isMyLocationEnabled = true
                 setOnInfoWindowClickListener(this@MainActivity)
+                setOnMarkerClickListener(this@MainActivity)
             }
             else{
                 if(ActivityCompat.shouldShowRequestPermissionRationale(this@MainActivity, Manifest.permission.ACCESS_FINE_LOCATION)){
@@ -264,20 +265,20 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnInfoWi
                 .takeIf { it.size > 0 }
                 .let {
                     list->list?.let {
-                    Log.w(TAG, "list size::: ${list.size}")
-                    for(each in list){
-                        Log.w(TAG, "drop off lat:: ${each.location[0]}, drop off lng:: ${each.location[1]}")
-                    }
-                    val intent = Intent(this@MainActivity, BookingActivity::class.java)
-                            .putExtra(Util.DROP_OFF, list)
-                            .putExtra(Util.SELECTED_LAT, tag.location[0])
-                            .putExtra(Util.SELECTED_LNG, tag.location[1])
-                            .putExtra(Util.START_TS, (calendar.timeInMillis))
-                            .putExtra(Util.END_TS, (secondCalendar.timeInMillis))
+                        Log.w(TAG, "list size::: ${list.size}")
+                        for(each in list){
+                            Log.w(TAG, "drop off lat:: ${each.location[0]}, drop off lng:: ${each.location[1]}")
+                        }
+                        val intent = Intent(this@MainActivity, BookingActivity::class.java)
+                                .putExtra(Util.DROP_OFF, list)
+                                .putExtra(Util.SELECTED_LAT, tag.location[0])
+                                .putExtra(Util.SELECTED_LNG, tag.location[1])
+                                .putExtra(Util.START_TS, (calendar.timeInMillis))
+                                .putExtra(Util.END_TS, (secondCalendar.timeInMillis))
 
-                    startActivity(intent)
-                    marker.hideInfoWindow()
-                }
+                        startActivity(intent)
+                        marker.hideInfoWindow()
+                    }
                 }
     }
 
@@ -370,5 +371,21 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnInfoWi
         else{
             super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         }
+    }
+
+    override fun onMarkerClick(marker: Marker): Boolean {
+        val lat = (marker.tag as BookingAvailability).location[0]
+        val lng = (marker.tag as BookingAvailability).location[1]
+
+        val currentLatitude = (application as SassApp).fixedCurrentLatitude
+        val currentLongitude= (application as SassApp).fixedCurrentLongitude
+
+        val distanceFromUser = getString(R.string.distance_from_user)
+        FloatArray(2).let {
+            Location.distanceBetween(currentLatitude, currentLongitude, lat, lng, it)
+            pickup_txt.text = distanceFromUser.distance(it[0])
+        }
+
+        return false
     }
 }

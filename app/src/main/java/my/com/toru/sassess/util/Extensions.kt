@@ -22,3 +22,5 @@ fun MarkerOptions.generateMarker(lat:Double,
                                  lng:Double,
                                  color:Float):MarkerOptions =
         this.position(LatLng(lat,lng)).icon(BitmapDescriptorFactory.defaultMarker(color))
+
+fun String.distance(distance:Float):String = String.format(this, Math.round(distance / 1000f))

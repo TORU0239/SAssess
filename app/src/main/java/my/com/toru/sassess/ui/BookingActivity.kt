@@ -17,6 +17,7 @@ import com.google.android.gms.maps.model.MarkerOptions
 import my.com.toru.sassess.R
 import my.com.toru.sassess.model.DropOffLocations
 import my.com.toru.sassess.util.Util
+import my.com.toru.sassess.util.distance
 import my.com.toru.sassess.util.generateMarker
 import java.util.*
 
@@ -105,13 +106,11 @@ class BookingActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnInf
     override fun onInfoWindowClick(marker: Marker) {
         if(marker.title != "Selected Location"){
             val bundle = Bundle()
-            bundle.putLong("START_TS", startTS)
-            bundle.putLong("END_TS", endTS)
+            bundle.putLong(Util.START_TS, startTS)
+            bundle.putLong(Util.END_TS, endTS)
 
             val bookinginfoDialog = BookingInfoDialogFragment.newInstance(bundle)
             bookinginfoDialog.show(supportFragmentManager, "booking_info")
         }
     }
-
-    private fun String.distance(distance:Float):String = String.format(this, Math.round(distance / 1000f))
 }
