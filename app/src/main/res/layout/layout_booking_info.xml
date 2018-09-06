@@ -54,9 +54,9 @@
         tools:text="2012/05/13"/>
 
     <Button
+        android:id="@+id/btn_booking_confirm"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-
         android:text="@string/confirm_and_book"
         android:textColor="@android:color/white"
         android:backgroundTint="@color/colorAccent"

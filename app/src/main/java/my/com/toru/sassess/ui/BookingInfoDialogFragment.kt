@@ -16,11 +16,18 @@ import java.util.*
 
 class BookingInfoDialogFragment : BottomSheetDialogFragment() {
     companion object {
-        fun newInstance(argument: Bundle):BookingInfoDialogFragment{
+        fun newInstance(argument: Bundle, callback: () -> Unit):BookingInfoDialogFragment{
             val dialog = BookingInfoDialogFragment()
             dialog.arguments = argument
+            dialog.setCallback(callback)
             return dialog
         }
+    }
+
+    private lateinit var cbFunction:(()->Unit)
+
+    fun setCallback(callback:()->Unit){
+        cbFunction = callback
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -43,6 +50,13 @@ class BookingInfoDialogFragment : BottomSheetDialogFragment() {
 
             booking_start_date.text = startDate
             booking_end_date.text = endDate
+        }
+
+
+
+        btn_booking_confirm.setOnClickListener {
+            dismiss()
+            cbFunction()
         }
     }
 }

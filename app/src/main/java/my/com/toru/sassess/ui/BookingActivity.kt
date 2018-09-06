@@ -1,5 +1,7 @@
 package my.com.toru.sassess.ui
 
+import android.app.Activity
+import android.content.Intent
 import android.location.Location
 import android.os.Bundle
 import android.os.Handler
@@ -10,10 +12,7 @@ import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
-import com.google.android.gms.maps.model.BitmapDescriptorFactory
-import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.Marker
-import com.google.android.gms.maps.model.MarkerOptions
+import com.google.android.gms.maps.model.*
 import my.com.toru.sassess.R
 import my.com.toru.sassess.model.DropOffLocations
 import my.com.toru.sassess.util.Util
@@ -82,6 +81,7 @@ class BookingActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnInf
             uiSettings.isMapToolbarEnabled = false
             setMinZoomPreference(10f)
             setOnInfoWindowClickListener(this@BookingActivity)
+            setLatLngBoundsForCameraTarget(LatLngBounds(LatLng(Util.SOUTHMOST_LAT, Util.WESTMOST_LNG), LatLng(Util.NORTHMOST_LAT, Util.EASTMOST_LNG)))
         }
 
         initSelectedPoint()
@@ -97,8 +97,19 @@ class BookingActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnInf
             bundle.putLong(Util.START_TS, startTS)
             bundle.putLong(Util.END_TS, endTS)
 
-            BookingInfoDialogFragment
-                    .newInstance(bundle).show(supportFragmentManager, Util.BOOKING_DIALOG_TAG)
+            val booking = BookingInfoDialogFragment
+                    .newInstance(bundle){
+                        startActivityForResult(Intent(this@BookingActivity, BookingCompleteActivity::class.java), 0x10)
+                    }
+            booking.show(supportFragmentManager, Util.BOOKING_DIALOG_TAG)
         }
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        if(requestCode == 0x10 && resultCode == Activity.RESULT_OK){
+            setResult(Activity.RESULT_OK)
+            finish()
+        }
+        super.onActivityResult(requestCode, resultCode, data)
     }
 }

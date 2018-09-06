@@ -1,6 +1,7 @@
 package my.com.toru.sassess.ui
 
 import android.Manifest
+import android.app.Activity
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
 import android.content.Context
@@ -36,7 +37,7 @@ import my.com.toru.sassess.util.distance
 import my.com.toru.sassess.util.generateMarker
 import java.util.*
 
-class MainActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarkerClickListener, GoogleMap.OnInfoWindowClickListener, MainView {
+class MainActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMapClickListener, GoogleMap.OnMarkerClickListener, GoogleMap.OnInfoWindowClickListener, MainView {
     companion object {
         private const val TAG:String = "MainActivity"
         private const val COUNT = 1
@@ -79,6 +80,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
                 isMyLocationEnabled = true
                 setOnInfoWindowClickListener(this@MainActivity)
                 setOnMarkerClickListener(this@MainActivity)
+                setOnMapClickListener(this@MainActivity)
             }
             else{
                 if(ActivityCompat.shouldShowRequestPermissionRationale(this@MainActivity, Manifest.permission.ACCESS_FINE_LOCATION)){
@@ -131,8 +133,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
                                 .putExtra(Util.START_TS, (calendar.timeInMillis))
                                 .putExtra(Util.END_TS, (secondCalendar.timeInMillis))
 
-                        startActivity(intent)
-//                        marker.hideInfoWindow()
+                        startActivityForResult(intent, 0x39)
                     }
                 }
     }
@@ -172,6 +173,11 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
             }
         }
         return false
+    }
+
+    // For handling case when user touched arbitrary area outside marker
+    override fun onMapClick(latLng: LatLng) {
+        pickup_txt.setText(R.string.no_pickup_selected)
     }
 
     override fun getViewContext(): Context = this@MainActivity
@@ -252,6 +258,10 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
                         .append(month+1).append("/")
                         .append(dayOfMonth)
                 first_date_txt.text = firstDate.toString()
+
+                calendar.set(Calendar.YEAR, year)
+                calendar.set(Calendar.MONTH, month)
+                calendar.set(Calendar.DAY_OF_MONTH, dayOfMonth)
 
             }, calendarYear, calendarMonth, calendarDay).show()
         }
@@ -378,5 +388,28 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
         override fun onProviderDisabled(provider: String?) {
             Log.i(TAG, "onProviderDisabled")
         }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        val completed = intent.getBooleanExtra("BOOKING_COMPLETED", false)
+        if(completed){
+            Log.w(TAG, "completed!!")
+        }
+        else{
+            Log.w(TAG, "not completed!!")
+        }
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        if(requestCode == 0x39 && resultCode == Activity.RESULT_OK){
+            initializeCalendars()
+            pickup_txt.setText(R.string.no_pickup_selected)
+            map.clear()
+            map.addMarker(MarkerOptions()
+                    .generateMarker((application as SassApp).fixedCurrentLatitude, (application as SassApp).fixedCurrentLongitude,
+                            BitmapDescriptorFactory.HUE_ORANGE))
+        }
+        super.onActivityResult(requestCode, resultCode, data)
     }
 }
