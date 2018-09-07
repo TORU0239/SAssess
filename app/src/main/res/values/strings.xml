@@ -15,6 +15,9 @@
 
     <string name="find_pickup_point">Find Pickup Points</string>
 
+    <string name="calendar_format">"%d/%02d/%02d"</string>
+    <string name="time_format">"%02d:%02d"</string>
+
     <string name="network_error">Network Error, Please Try Again</string>
     <string name="check_internet_connection">Check your internet connection</string>
 

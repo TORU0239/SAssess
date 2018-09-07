@@ -36,6 +36,7 @@ import my.com.toru.sassess.util.Util.isUserInsideSG
 import my.com.toru.sassess.util.actionAndRequestPermission
 import my.com.toru.sassess.util.distance
 import my.com.toru.sassess.util.generateMarker
+import java.text.SimpleDateFormat
 import java.util.*
 
 class MainActivity : AppCompatActivity(), OnMapReadyCallback,
@@ -248,31 +249,13 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
 
         secondCalendar = GregorianCalendar(calendarYear, calendarMonth, calendarDay+1, calendarHour, calendarMinutes)
 
-        first_date_txt.text = StringBuilder()
-                .append(calendarYear).append("/")
-                .append(calendarMonth+1).append("/")
-                .append(calendarDay)
-
-
-        first_time_txt.text = StringBuilder()
-                .append(calendarHour).append(":")
-                .let {
-                    if(calendarMinutes in 0..9){
-                        it.append(0).append(calendarMinutes)
-                    }
-                    else{
-                        it.append(calendarMinutes)
-                    }
-                }.toString()
+        first_date_txt.text = String.format(getString(R.string.calendar_format), calendarYear, (calendarMonth+1), calendarDay)
+        first_time_txt.text = String.format(getString(R.string.time_format), calendarHour, calendarMinutes)
 
         first_date_txt.setOnClickListener {
             DatePickerDialog(this@MainActivity, DatePickerDialog.OnDateSetListener {
                 _, year, month, dayOfMonth ->
-                val firstDate = StringBuilder()
-                        .append(year).append("/")
-                        .append(month+1).append("/")
-                        .append(dayOfMonth)
-                first_date_txt.text = firstDate.toString()
+                first_date_txt.text = String.format(getString(R.string.calendar_format), year, (month+1), dayOfMonth)
 
                 calendar.set(Calendar.YEAR, year)
                 calendar.set(Calendar.MONTH, month)
@@ -282,10 +265,10 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
                 secondCalendar.set(Calendar.MONTH, month)
                 secondCalendar.set(Calendar.DAY_OF_MONTH, dayOfMonth + 1)
 
-                second_date_txt.text = StringBuilder()
-                        .append(secondCalendar.get(Calendar.YEAR)).append("/")
-                        .append(secondCalendar.get(Calendar.MONTH)+1).append("/")
-                        .append(secondCalendar.get(Calendar.DAY_OF_MONTH))
+                second_date_txt.text = String.format(getString(R.string.calendar_format),
+                                                    secondCalendar.get(Calendar.YEAR),
+                                                    secondCalendar.get(Calendar.MONTH)+1,
+                                                    secondCalendar.get(Calendar.DAY_OF_MONTH))
 
             }, calendarYear, calendarMonth, calendarDay).show()
         }
@@ -293,48 +276,29 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
         first_time_txt.setOnClickListener {
             TimePickerDialog(this@MainActivity, TimePickerDialog.OnTimeSetListener {
                 _, hourOfDay, minute ->
-                val minutes = if(minute in 0..9){
-                    """0$minute"""
-                } else{
-                    minute.toString()
-                }
-
-                val firstTime = StringBuilder()
-                        .append(hourOfDay).append(":")
-                        .append(minutes)
-                first_time_txt.text = firstTime.toString()
-
+                first_time_txt.text = String.format(getString(R.string.time_format), hourOfDay, minute)
                 calendar.set(Calendar.HOUR_OF_DAY, hourOfDay)
                 calendar.set(Calendar.MINUTE, minute)
 
             }, calendarHour, calendarMinutes,true).show()
         }
 
-        second_date_txt.text = StringBuilder()
-                .append(secondCalendar.get(Calendar.YEAR)).append("/")
-                .append(secondCalendar.get(Calendar.MONTH)+1).append("/")
-                .append(secondCalendar.get(Calendar.DAY_OF_MONTH))
 
-        second_time_txt.text = StringBuilder()
-                .append(secondCalendar.get(Calendar.HOUR_OF_DAY)).append(":")
-                .let {
-                    if(secondCalendar.get(Calendar.MINUTE) in 0..9){
-                        it.append(0).append(calendarMinutes)
-                    }
-                    else{
-                        it.append(calendarMinutes)
-                    }
-                }.toString()
+        // Initialization of returning date of car
+        second_date_txt.text = String.format(getString(R.string.calendar_format),
+                                            secondCalendar.get(Calendar.YEAR),
+                                            secondCalendar.get(Calendar.MONTH)+1,
+                                            secondCalendar.get(Calendar.DAY_OF_MONTH))
+
+        second_time_txt.text = String.format(getString(R.string.time_format),
+                                            secondCalendar.get(Calendar.HOUR_OF_DAY),
+                                            secondCalendar.get(Calendar.MINUTE))
 
         second_date_txt.setOnClickListener {
             val datepicker = DatePickerDialog(this@MainActivity, DatePickerDialog.OnDateSetListener {
                 _, year, month, dayOfMonth ->
-                val secondDate = StringBuilder()
-                        .append(year).append("/")
-                        .append(month+1).append("/")
-                        .append(dayOfMonth)
-                second_date_txt.text = secondDate.toString()
 
+                second_date_txt.text = String.format(getString(R.string.calendar_format), year, month+1, dayOfMonth)
                 secondCalendar.set(Calendar.YEAR, year)
                 secondCalendar.set(Calendar.MONTH, month)
                 secondCalendar.set(Calendar.DAY_OF_MONTH, dayOfMonth)
@@ -346,22 +310,14 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
         second_time_txt.setOnClickListener {
             TimePickerDialog(this@MainActivity, TimePickerDialog.OnTimeSetListener {
                 _, hourOfDay, minute ->
-                val minutes = if(minute in 0..9){
-                    """0$minute"""
-                } else{
-                    minute.toString()
-                }
-                val secondTime = StringBuilder()
-                        .append(hourOfDay).append(":")
-                        .append(minutes)
-                second_time_txt.text = secondTime.toString()
 
+                second_time_txt.text = String.format(getString(R.string.time_format), hourOfDay, minute)
                 secondCalendar.set(Calendar.HOUR_OF_DAY, hourOfDay)
                 secondCalendar.set(Calendar.MINUTE, minute)
 
-            }, secondCalendar.get(Calendar.HOUR_OF_DAY), secondCalendar.get(Calendar.MINUTE),true)
-                    .show()
+            }, secondCalendar.get(Calendar.HOUR_OF_DAY), secondCalendar.get(Calendar.MINUTE),true).show()
         }
+        //endregion
     }
 
     private val locationListener:LocationListener = object:LocationListener{
