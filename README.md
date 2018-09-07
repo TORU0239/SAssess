@@ -24,6 +24,9 @@ Author: Toru Wonyoung Choi
 6. When clicking Drop Off Point, app calls and initializes another activity with information from user.
 7. Users can choose Pick-Up Point, Drop-Off Point, and Date, and send a request to book.
 8. Because not given any API for booking, request is a kind of dummy.
+### Screenshots
+
+![alt text](https://github.com/TORU0239/SAssess/blob/master/art/device-2018-09-07-135249.png)
 
 ### How to run (for debugging in Android Studio)
 1. After forking repository 'SAssess', programmers can import this project to Android Studio.
