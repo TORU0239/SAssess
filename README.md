@@ -26,7 +26,7 @@ Author: Toru Wonyoung Choi
 8. Because not given any API for booking, request is a kind of dummy.
 ### Screenshots
 
-![alt text](https://github.com/TORU0239/SAssess/blob/master/art/device-2018-09-07-135249.png)
+![alt text](https://github.com/TORU0239/SAssess/blob/master/art/device-2018-09-07-135249.png)d
 
 ### How to run (for debugging in Android Studio)
 1. After forking repository 'SAssess', programmers can import this project to Android Studio.
